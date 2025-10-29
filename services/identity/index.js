@@ -3,7 +3,7 @@ import { STSClient, GetCallerIdentityCommand } from "@aws-sdk/client-sts";
 class IdentityService {
     constructor() {
         this.client = new STSClient({
-            region: process.env["REGION"] || 'eu-west-2'
+            region: process.env["REGION"] || 'eu-west-1'
         });
     }
 

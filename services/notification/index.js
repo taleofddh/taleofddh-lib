@@ -3,7 +3,7 @@ import { SNSClient, PublishCommand, SubscribeCommand } from "@aws-sdk/client-sns
 class NotificationService {
     constructor() {
         this.client = new SNSClient({
-            region: process.env['REGION'] || 'eu-west-2'
+            region: process.env['REGION'] || 'eu-west-1'
         });
     }
 

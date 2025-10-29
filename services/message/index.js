@@ -3,7 +3,7 @@ import { SQSClient, SendMessageCommand, ReceiveMessageCommand, DeleteMessageComm
 class MessageService {
     constructor() {
         this.client = new SQSClient({
-            region: process.env['REGION'] || 'eu-west-2'
+            region: process.env['REGION'] || 'eu-west-1'
         });
     }
 

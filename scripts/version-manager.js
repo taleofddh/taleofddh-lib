@@ -90,6 +90,50 @@ function incrementVersion(version, type) {
     return parts.join('.');
 }
 
+// Function to update dependency versions in aggregate packages
+function updateAggregateDependencies(aggregateDir, newVersion, type) {
+    const packageJsonPath = path.join(aggregateDir, 'package.json');
+    
+    if (!fs.existsSync(packageJsonPath)) {
+        console.error(`${colors.red}❌ No package.json found in ${aggregateDir}${colors.reset}`);
+        return false;
+    }
+    
+    try {
+        const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+        
+        if (!packageJson.dependencies) {
+            console.log(`${colors.yellow}⚠️  No dependencies found in ${packageJson.name}${colors.reset}`);
+            return true;
+        }
+        
+        let updatedCount = 0;
+        const prefix = type === 'services' ? '@taleofddh/' : '@taleofddh/';
+        
+        // Update all @taleofddh dependencies to the new version
+        for (const [depName, depVersion] of Object.entries(packageJson.dependencies)) {
+            if (depName.startsWith(prefix)) {
+                const oldVersion = depVersion;
+                packageJson.dependencies[depName] = `^${newVersion}`;
+                console.log(`${colors.green}   ✅ ${depName}: ${oldVersion} → ^${newVersion}${colors.reset}`);
+                updatedCount++;
+            }
+        }
+        
+        if (updatedCount > 0) {
+            fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+            console.log(`${colors.green}✅ Updated ${updatedCount} dependencies in ${packageJson.name}${colors.reset}`);
+        } else {
+            console.log(`${colors.yellow}⚠️  No @taleofddh dependencies found to update in ${packageJson.name}${colors.reset}`);
+        }
+        
+        return true;
+    } catch (error) {
+        console.error(`${colors.red}❌ Failed to update dependencies in ${packageJsonPath}: ${error.message}${colors.reset}`);
+        return false;
+    }
+}
+
 // Function to check git status
 function checkGitStatus() {
     const result = executeCommand('git status --porcelain', rootDir, 'Checking git status', true);
@@ -260,9 +304,36 @@ function manageVersions(versionType, options = {}) {
         }
     }
     
-    // 6. Commit and tag (if not dry run and not skipping git)
+    // 6. Update dependency versions in aggregate packages
+    console.log(`\n${colors.bright}6. Updating dependency versions in aggregate packages...${colors.reset}`);
+    
+    // Update services aggregate dependencies
+    if (!dryRun) {
+        const servicesSuccess = updateAggregateDependencies(servicesDir, newVersion, 'services');
+        if (servicesSuccess) {
+            updateResults.successful.push('Services aggregate dependencies');
+        } else {
+            updateResults.failed.push('Services aggregate dependencies');
+        }
+    } else {
+        console.log(`${colors.cyan}   Would update services aggregate dependencies to ^${newVersion}${colors.reset}`);
+    }
+    
+    // Update utilities aggregate dependencies
+    if (!dryRun) {
+        const utilitiesSuccess = updateAggregateDependencies(utilitiesDir, newVersion, 'utilities');
+        if (utilitiesSuccess) {
+            updateResults.successful.push('Utilities aggregate dependencies');
+        } else {
+            updateResults.failed.push('Utilities aggregate dependencies');
+        }
+    } else {
+        console.log(`${colors.cyan}   Would update utilities aggregate dependencies to ^${newVersion}${colors.reset}`);
+    }
+    
+    // 7. Commit and tag (if not dry run and not skipping git)
     if (!dryRun && !skipGit) {
-        console.log(`\n${colors.bright}6. Committing changes and creating tag...${colors.reset}`);
+        console.log(`\n${colors.bright}7. Committing changes and creating tag...${colors.reset}`);
         const gitSuccess = commitAndTag(newVersion, skipGit);
         if (gitSuccess) {
             updateResults.successful.push('Git commit and tag');
@@ -270,9 +341,9 @@ function manageVersions(versionType, options = {}) {
             updateResults.failed.push('Git commit and tag');
         }
     } else if (!dryRun && skipGit) {
-        console.log(`\n${colors.yellow}6. Skipping git operations...${colors.reset}`);
+        console.log(`\n${colors.yellow}7. Skipping git operations...${colors.reset}`);
     } else {
-        console.log(`\n${colors.cyan}6. Would commit changes and create tag v${newVersion}${colors.reset}`);
+        console.log(`\n${colors.cyan}7. Would commit changes and create tag v${newVersion}${colors.reset}`);
     }
     
     // Display results

@@ -3,7 +3,7 @@ import { SecretsManagerClient, GetSecretValueCommand, PutSecretValueCommand } fr
 class SecretService {
     constructor() {
         this.client = new SecretsManagerClient({
-            region: process.env['REGION'] || 'eu-west-2'
+            region: process.env['REGION'] || 'eu-west-1'
         });
     }
 

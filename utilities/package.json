@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/utilities",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Aggregate package for all utility libraries",
   "type": "module",
   "main": "index.js",
@@ -18,14 +18,14 @@
     "aggregate"
   ],
   "dependencies": {
-    "@taleofddh/response": "^1.0.0",
-    "@taleofddh/date": "^1.0.0",
-    "@taleofddh/array": "^1.0.0",
-    "@taleofddh/error": "^1.0.0",
-    "@taleofddh/logger": "^1.0.0",
-    "@taleofddh/middleware": "^1.0.0",
-    "@taleofddh/constants": "^1.0.0",
-    "@taleofddh/validation": "^1.0.0"
+    "@taleofddh/response": "^1.1.0",
+    "@taleofddh/date": "^1.1.0",
+    "@taleofddh/array": "^1.1.0",
+    "@taleofddh/error": "^1.1.0",
+    "@taleofddh/logger": "^1.1.0",
+    "@taleofddh/middleware": "^1.1.0",
+    "@taleofddh/constants": "^1.1.0",
+    "@taleofddh/validation": "^1.1.0"
   },
   "devDependencies": {},
   "engines": {

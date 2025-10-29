@@ -1,7 +1,7 @@
 {
-  "name": "@taleofddh/whatsapp",
+  "name": "@taleofddh/email",
   "version": "1.1.0",
-  "description": "Tale of DDH whatsapp api service wrappers for AWS Lambda",
+  "description": "Tale of DDH email service wrappers for AWS Lambda",
   "type": "module",
   "main": "index.js",
   "repository": {
@@ -11,15 +11,13 @@
   "keywords": [
     "aws",
     "lambda",
-    "whatsapp",
-    "message",
-    "api",
-    "rest"
+    "email",
+    "ses"
   ],
-  "dependencies": {
-    "axios": "^1.13.1"
+  "dependencies": {},
+  "devDependencies": {
+    "@aws-sdk/client-ses": "^3.919.0"
   },
-  "devDependencies": {},
   "engines": {
     "node": ">=22.0.0"
   },

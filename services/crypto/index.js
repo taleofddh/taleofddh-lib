@@ -3,7 +3,7 @@ import { KMSClient, DecryptCommand, EncryptCommand } from "@aws-sdk/client-kms";
 class CryptoService {
     constructor() {
         this.client = new KMSClient({
-            region: process.env['REGION'] || 'eu-west-2'
+            region: process.env['REGION'] || 'eu-west-1'
         });
     }
 

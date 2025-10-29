@@ -3,7 +3,9 @@ const { PinpointClient, SendMessageCommand } = pkg;
 
 class ChannelService {
     constructor() {
-        this.client = new PinpointClient({ region: process.env['REGION'] });
+        this.client = new PinpointClient({
+            region: process.env['REGION']  || 'eu-west-1'
+        });
         
         // Default configuration - can be overridden in methods
         this.defaultConfig = {

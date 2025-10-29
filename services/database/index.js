@@ -4,7 +4,7 @@ import { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand, DeleteCo
 class DatabaseService {
     constructor() {
         this.client = new DynamoDBClient({
-            region: process.env['REGION'] || 'eu-west-2'
+            region: process.env['REGION'] || 'eu-west-1'
         });
         this.docClient = DynamoDBDocumentClient.from(this.client);
     }

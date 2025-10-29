@@ -32,6 +32,7 @@ permissions:
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/production' || github.event_name == 'workflow_dispatch'
     outputs:
       services-changed: ${{ steps.changes.outputs.services }}
       utilities-changed: ${{ steps.changes.outputs.utilities }}
@@ -286,8 +287,8 @@ jobs:
             echo "❌ Individual service ${{ matrix.service }} failed to publish"
             exit 1
           fi
-  p
-ublish-individual-utilities:
+
+  publish-individual-utilities:
     name: "Publish Individual Utilities"
     needs: detect-changes
     if: |

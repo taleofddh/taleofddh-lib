@@ -1,0 +1,27 @@
+{
+  "name": "@taleofddh/workbook",
+  "version": "1.0.0",
+  "description": "Tale of DDH workbook service wrappers for AWS Lambda",
+  "type": "module",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/taleofddh/taleofddh-lib.git"
+  },
+  "keywords": [
+    "aws",
+    "lambda",
+    "workbook",
+    "excel"
+  ],
+  "dependencies": {
+    "exceljs": "^4.4.0"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  }
+}

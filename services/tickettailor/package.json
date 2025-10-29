@@ -1,0 +1,29 @@
+{
+  "name": "@taleofddh/tickettailor",
+  "version": "1.0.0",
+  "description": "Tale of DDH ticket tailor api service wrappers for AWS Lambda",
+  "type": "module",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/taleofddh/taleofddh-lib.git"
+  },
+  "keywords": [
+    "aws",
+    "lambda",
+    "ticket",
+    "tailor",
+    "api",
+    "rest"
+  ],
+  "dependencies": {
+    "axios": "^1.13.1"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  }
+}

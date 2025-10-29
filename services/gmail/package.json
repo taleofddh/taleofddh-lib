@@ -1,0 +1,32 @@
+{
+  "name": "@taleofddh/gmail",
+  "version": "1.0.0",
+  "description": "Tale of DDH google email service wrappers for AWS Lambda",
+  "type": "module",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/taleofddh/taleofddh-lib.git"
+  },
+  "keywords": [
+    "aws",
+    "lambda",
+    "google",
+    "gmail",
+    "email",
+    "nodemailer"
+  ],
+  "dependencies": {
+    "@googleapis/gmail": "^15.0.0",
+    "@googleapis/oauth2": "^4.0.0",
+    "ejs": "^3.1.10",
+    "nodemailer": "^7.0.10"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  }
+}

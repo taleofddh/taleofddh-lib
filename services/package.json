@@ -1,0 +1,39 @@
+{
+  "name": "@taleofddh/services",
+  "version": "1.0.0",
+  "description": "Tale of DDH service wrappers for AWS Lambda",
+  "type": "module",
+  "main": "index.js",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/taleofddh/taleofddh-lib.git"
+  },
+  "keywords": [
+    "aws",
+    "lambda",
+    "service",
+    "wrappers"
+  ],
+  "dependencies": {
+    "@taleofddh/channel": "^1.0.0",
+    "@taleofddh/crypto": "^1.0.0",
+    "@taleofddh/database": "^1.0.0",
+    "@taleofddh/drive": "^1.1.0",
+    "@taleofddh/gmail": "^1.1.0",
+    "@taleofddh/identity": "^1.0.0",
+    "@taleofddh/message": "^1.0.0",
+    "@taleofddh/notification": "^1.0.0",
+    "@taleofddh/secret": "^1.0.0",
+    "@taleofddh/storage": "^1.0.0",
+    "@taleofddh/tickettailor": "^1.1.0",
+    "@taleofddh/whatsapp": "^1.1.0",
+    "@taleofddh/workbook": "^1.0.0"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

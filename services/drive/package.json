@@ -1,0 +1,29 @@
+{
+  "name": "@taleofddh/drive",
+  "version": "1.0.0",
+  "description": "Tale of DDH google drive service wrappers for AWS Lambda",
+  "type": "module",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/taleofddh/taleofddh-lib.git"
+  },
+  "keywords": [
+    "aws",
+    "lambda",
+    "google",
+    "drive",
+    "file"
+  ],
+  "dependencies": {
+    "@googleapis/drive": "^19.1.0",
+    "@googleapis/oauth2": "^4.0.0"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "name": "@taleofddh/identity",
+  "version": "1.0.0",
+  "description": "Tale of DDH identity service wrappers for AWS Lambda",
+  "type": "module",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/taleofddh/taleofddh-lib.git"
+  },
+  "keywords": [
+    "aws",
+    "lambda",
+    "identity",
+    "sts"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "@aws-sdk/client-sts": "^3.919.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  }
+}

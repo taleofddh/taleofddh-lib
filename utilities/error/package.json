@@ -1,0 +1,25 @@
+{
+  "name": "@taleofddh/error",
+  "version": "1.0.0",
+  "description": "Standardized error handling utilities for Lambda functions",
+  "type": "module",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/taleofddh/taleofddh-lib.git"
+  },
+  "keywords": [
+    "error",
+    "handling",
+    "lambda",
+    "aws"
+  ],
+  "dependencies": {},
+  "devDependencies": {},
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  }
+}

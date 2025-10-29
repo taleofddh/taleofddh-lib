@@ -1,0 +1,278 @@
+name: Publish Packages
+
+on:
+  push:
+    branches: [production]
+    paths:
+      - 'services/**'
+      - 'utilities/**'
+      - '.github/workflows/publish-packages.yml'
+  workflow_dispatch:
+    inputs:
+      package_type:
+        description: 'Package type to publish'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - services
+          - utilities
+          - individual
+      package_name:
+        description: 'Specific package name (for individual publishing)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      services-changed: ${{ steps.changes.outputs.services }}
+      utilities-changed: ${{ steps.changes.outputs.utilities }}
+      individual-services: ${{ steps.individual-changes.outputs.services }}
+      individual-utilities: ${{ steps.individual-changes.outputs.utilities }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            services:
+              - 'services/**'
+            utilities:
+              - 'utilities/**'
+
+      - name: Detect individual package changes
+        id: individual-changes
+        run: |
+          # Detect changed service packages (exclude root package.json)
+          SERVICES=$(git diff --name-only HEAD~1 HEAD | grep '^services/' | grep -v '^services/package\.json$' | cut -d'/' -f2 | sort -u | tr '\n' ' ')
+          if [ -n "$SERVICES" ]; then
+            SERVICES_JSON=$(echo "$SERVICES" | sed 's/ *$//' | sed 's/ /","/g' | sed 's/^/["/' | sed 's/$/"]/')
+          else
+            # If no individual changes detected but services changed, publish all services
+            if [ "${{ steps.changes.outputs.services }}" == "true" ]; then
+              SERVICES_JSON='["channel","crypto","database","drive","gmail","identity","message","notification","secret","storage","tickettailor","whatsapp","workbook"]'
+            else
+              SERVICES_JSON="[]"
+            fi
+          fi
+          echo "services=$SERVICES_JSON" >> $GITHUB_OUTPUT
+          
+          # Detect changed utility packages (exclude root package.json)
+          UTILITIES=$(git diff --name-only HEAD~1 HEAD | grep '^utilities/' | grep -v '^utilities/package\.json$' | cut -d'/' -f2 | sort -u | tr '\n' ' ')
+          if [ -n "$UTILITIES" ]; then
+            UTILITIES_JSON=$(echo "$UTILITIES" | sed 's/ *$//' | sed 's/ /","/g' | sed 's/^/["/' | sed 's/$/"]/')
+          else
+            # If no individual changes detected but utilities changed, publish all utilities
+            if [ "${{ steps.changes.outputs.utilities }}" == "true" ]; then
+              UTILITIES_JSON='["array","constants","date","error","logger","middleware","response","text","validation"]'
+            else
+              UTILITIES_JSON="[]"
+            fi
+          fi
+          echo "utilities=$UTILITIES_JSON" >> $GITHUB_OUTPUT
+
+  publish-services:
+    needs: detect-changes
+    if: |
+      (needs.detect-changes.outputs.services-changed == 'true' && github.event_name == 'push') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.package_type == 'all' || github.event.inputs.package_type == 'services'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@taleofddh'
+
+      - name: Configure npm authentication
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
+          echo "@taleofddh:registry=https://npm.pkg.github.com/" >> ~/.npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean npm cache
+        run: npm cache clean --force
+
+      - name: Install dependencies
+        run: |
+          cd services
+          npm install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish services aggregate
+        run: |
+          cd services
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-utilities:
+    needs: detect-changes
+    if: |
+      (needs.detect-changes.outputs.utilities-changed == 'true' && github.event_name == 'push') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.package_type == 'all' || github.event.inputs.package_type == 'utilities'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@taleofddh'
+
+      - name: Configure npm authentication
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
+          echo "@taleofddh:registry=https://npm.pkg.github.com/" >> ~/.npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean npm cache
+        run: npm cache clean --force
+
+      - name: Install dependencies
+        run: |
+          cd utilities
+          npm install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish utilities aggregate
+        run: |
+          cd utilities
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-individual-services:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.individual-services != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.individual-services) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@taleofddh'
+
+      - name: Configure npm authentication
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
+          echo "@taleofddh:registry=https://npm.pkg.github.com/" >> ~/.npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean npm cache
+        run: npm cache clean --force
+
+      - name: Install dependencies
+        run: |
+          cd services/${{ matrix.service }}
+          npm install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish individual service
+        run: |
+          cd services/${{ matrix.service }}
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-individual-utilities:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.individual-utilities != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        utility: ${{ fromJson(needs.detect-changes.outputs.individual-utilities) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@taleofddh'
+
+      - name: Configure npm authentication
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
+          echo "@taleofddh:registry=https://npm.pkg.github.com/" >> ~/.npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean npm cache
+        run: npm cache clean --force
+
+      - name: Install dependencies
+        run: |
+          cd utilities/${{ matrix.utility }}
+          npm install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish individual utility
+        run: |
+          cd utilities/${{ matrix.utility }}
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-main-package:
+    needs: [publish-services, publish-utilities]
+    if: always() && (needs.publish-services.result == 'success' || needs.publish-utilities.result == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@taleofddh'
+
+      - name: Configure npm authentication
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
+          echo "@taleofddh:registry=https://npm.pkg.github.com/" >> ~/.npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean npm cache
+        run: npm cache clean --force
+
+      - name: Install dependencies
+        run: npm install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish main package
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

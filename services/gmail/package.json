@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/gmail",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Tale of DDH google email service wrappers for AWS Lambda",
   "type": "module",
   "main": "index.js",

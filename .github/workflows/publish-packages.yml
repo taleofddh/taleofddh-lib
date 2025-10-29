@@ -9,20 +9,21 @@ on:
       - '.github/workflows/publish-packages.yml'
   workflow_dispatch:
     inputs:
-      package_type:
-        description: 'Package type to publish'
+      package_scope:
+        description: 'Publishing scope'
         required: true
-        default: 'all'
+        default: 'full-pipeline'
         type: choice
         options:
-          - all
-          - services
-          - utilities
-          - individual
-      package_name:
-        description: 'Specific package name (for individual publishing)'
+          - individual-only
+          - aggregate-and-above
+          - main-only
+          - full-pipeline
+      force_publish:
+        description: 'Force publish even without detected changes'
         required: false
-        type: string
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -36,6 +37,10 @@ jobs:
       utilities-changed: ${{ steps.changes.outputs.utilities }}
       individual-services: ${{ steps.individual-changes.outputs.services }}
       individual-utilities: ${{ steps.individual-changes.outputs.utilities }}
+      should-publish-services-aggregate: ${{ steps.dependency-chain.outputs.should-publish-services-aggregate }}
+      should-publish-utilities-aggregate: ${{ steps.dependency-chain.outputs.should-publish-utilities-aggregate }}
+      should-publish-main-package: ${{ steps.dependency-chain.outputs.should-publish-main-package }}
+      publishing-scope: ${{ steps.dependency-chain.outputs.publishing-scope }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -53,121 +58,174 @@ jobs:
       - name: Detect individual package changes
         id: individual-changes
         run: |
-          # Detect changed service packages (exclude root package.json)
-          SERVICES=$(git diff --name-only HEAD~1 HEAD | grep '^services/' | grep -v '^services/package\.json$' | cut -d'/' -f2 | sort -u | tr '\n' ' ')
-          if [ -n "$SERVICES" ]; then
-            SERVICES_JSON=$(echo "$SERVICES" | sed 's/ *$//' | sed 's/ /","/g' | sed 's/^/["/' | sed 's/$/"]/')
+          # Handle force publish scenario for manual dispatch
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ "${{ github.event.inputs.force_publish }}" == "true" ]; then
+            echo "Force publish enabled - including all packages"
+            SERVICES_JSON='["channel","crypto","database","drive","gmail","identity","message","notification","secret","storage","tickettailor","whatsapp","workbook"]'
+            UTILITIES_JSON='["array","constants","date","error","logger","middleware","response","text","validation"]'
           else
-            # If no individual changes detected but services changed, publish all services
-            if [ "${{ steps.changes.outputs.services }}" == "true" ]; then
-              SERVICES_JSON='["channel","crypto","database","drive","gmail","identity","message","notification","secret","storage","tickettailor","whatsapp","workbook"]'
+            # Detect changed service packages (exclude root package.json)
+            SERVICES=$(git diff --name-only HEAD~1 HEAD | grep '^services/' | grep -v '^services/package\.json' | cut -d'/' -f2 | sort -u | tr '\n' ' ')
+            if [ -n "$SERVICES" ]; then
+              SERVICES_JSON=$(echo "$SERVICES" | sed 's/ *$//' | sed 's/ /","/g' | sed 's/^/["/' | sed 's/$/"]/')
             else
-              SERVICES_JSON="[]"
+              # If no individual changes detected but services changed, publish all services
+              if [ "${{ steps.changes.outputs.services }}" == "true" ]; then
+                SERVICES_JSON='["channel","crypto","database","drive","gmail","identity","message","notification","secret","storage","tickettailor","whatsapp","workbook"]'
+              else
+                SERVICES_JSON="[]"
+              fi
+            fi
+            
+            # Detect changed utility packages (exclude root package.json)
+            UTILITIES=$(git diff --name-only HEAD~1 HEAD | grep '^utilities/' | grep -v '^utilities/package\.json' | cut -d'/' -f2 | sort -u | tr '\n' ' ')
+            if [ -n "$UTILITIES" ]; then
+              UTILITIES_JSON=$(echo "$UTILITIES" | sed 's/ *$//' | sed 's/ /","/g' | sed 's/^/["/' | sed 's/$/"]/')
+            else
+              # If no individual changes detected but utilities changed, publish all utilities
+              if [ "${{ steps.changes.outputs.utilities }}" == "true" ]; then
+                UTILITIES_JSON='["array","constants","date","error","logger","middleware","response","text","validation"]'
+              else
+                UTILITIES_JSON="[]"
+              fi
             fi
           fi
-          echo "services=$SERVICES_JSON" >> $GITHUB_OUTPUT
           
-          # Detect changed utility packages (exclude root package.json)
-          UTILITIES=$(git diff --name-only HEAD~1 HEAD | grep '^utilities/' | grep -v '^utilities/package\.json$' | cut -d'/' -f2 | sort -u | tr '\n' ' ')
-          if [ -n "$UTILITIES" ]; then
-            UTILITIES_JSON=$(echo "$UTILITIES" | sed 's/ *$//' | sed 's/ /","/g' | sed 's/^/["/' | sed 's/$/"]/')
-          else
-            # If no individual changes detected but utilities changed, publish all utilities
-            if [ "${{ steps.changes.outputs.utilities }}" == "true" ]; then
-              UTILITIES_JSON='["array","constants","date","error","logger","middleware","response","text","validation"]'
-            else
-              UTILITIES_JSON="[]"
-            fi
-          fi
+          echo "services=$SERVICES_JSON" >> $GITHUB_OUTPUT
           echo "utilities=$UTILITIES_JSON" >> $GITHUB_OUTPUT
 
-  publish-services:
-    needs: detect-changes
-    if: |
-      (needs.detect-changes.outputs.services-changed == 'true' && github.event_name == 'push') ||
-      (github.event_name == 'workflow_dispatch' && (github.event.inputs.package_type == 'all' || github.event.inputs.package_type == 'services'))
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          registry-url: 'https://npm.pkg.github.com'
-          scope: '@taleofddh'
-
-      - name: Configure npm authentication
+      - name: Log detected packages
         run: |
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
-          echo "@taleofddh:registry=https://npm.pkg.github.com/" >> ~/.npmrc
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          echo "=========================================="
+          echo "📋 PACKAGE DETECTION SUMMARY"
+          echo "=========================================="
+          echo "🔄 Trigger: ${{ github.event_name }}"
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "📦 Scope: ${{ github.event.inputs.package_scope }}"
+            echo "🔧 Force publish: ${{ github.event.inputs.force_publish }}"
+          fi
+          echo ""
+          echo "📊 Services to publish:"
+          echo '${{ steps.individual-changes.outputs.services }}' | jq -r '.[]' | sed 's/^/   - @taleofddh\//' || echo "   - None"
+          echo ""
+          echo "📊 Utilities to publish:"
+          echo '${{ steps.individual-changes.outputs.utilities }}' | jq -r '.[]' | sed 's/^/   - @taleofddh\//' || echo "   - None"
+          echo ""
+          echo "🎯 Services changed: ${{ steps.changes.outputs.services }}"
+          echo "🎯 Utilities changed: ${{ steps.changes.outputs.utilities }}"
+          echo "=========================================="
 
-      - name: Clean npm cache
-        run: npm cache clean --force
-
-      - name: Install dependencies
+      - name: Determine dependency chain requirements
+        id: dependency-chain
         run: |
-          cd services
-          npm install
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and publish services aggregate
-        run: |
-          cd services
-          npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  publish-utilities:
-    needs: detect-changes
-    if: |
-      (needs.detect-changes.outputs.utilities-changed == 'true' && github.event_name == 'push') ||
-      (github.event_name == 'workflow_dispatch' && (github.event.inputs.package_type == 'all' || github.event.inputs.package_type == 'utilities'))
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          registry-url: 'https://npm.pkg.github.com'
-          scope: '@taleofddh'
-
-      - name: Configure npm authentication
-        run: |
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
-          echo "@taleofddh:registry=https://npm.pkg.github.com/" >> ~/.npmrc
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Clean npm cache
-        run: npm cache clean --force
-
-      - name: Install dependencies
-        run: |
-          cd utilities
-          npm install
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and publish utilities aggregate
-        run: |
-          cd utilities
-          npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Determine what should be published based on changes and trigger type
+          SERVICES_CHANGED="${{ steps.changes.outputs.services }}"
+          UTILITIES_CHANGED="${{ steps.changes.outputs.utilities }}"
+          INDIVIDUAL_SERVICES='${{ steps.individual-changes.outputs.services }}'
+          INDIVIDUAL_UTILITIES='${{ steps.individual-changes.outputs.utilities }}'
+          
+          echo "=========================================="
+          echo "🔗 DEPENDENCY CHAIN ANALYSIS"
+          echo "=========================================="
+          
+          # Initialize flags
+          PUBLISH_SERVICES_AGGREGATE="false"
+          PUBLISH_UTILITIES_AGGREGATE="false"
+          PUBLISH_MAIN_PACKAGE="false"
+          PUBLISHING_SCOPE="none"
+          
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "📋 Trigger: Push to production branch"
+            
+            # For push events, determine scope based on actual changes
+            if [ "$INDIVIDUAL_SERVICES" != "[]" ] || [ "$SERVICES_CHANGED" == "true" ]; then
+              PUBLISH_SERVICES_AGGREGATE="true"
+              PUBLISH_MAIN_PACKAGE="true"
+              if [ "$PUBLISHING_SCOPE" == "none" ]; then
+                PUBLISHING_SCOPE="services-and-above"
+              else
+                PUBLISHING_SCOPE="full-pipeline"
+              fi
+              echo "✅ Services changes detected - will publish services aggregate and main package"
+            fi
+            
+            if [ "$INDIVIDUAL_UTILITIES" != "[]" ] || [ "$UTILITIES_CHANGED" == "true" ]; then
+              PUBLISH_UTILITIES_AGGREGATE="true"
+              PUBLISH_MAIN_PACKAGE="true"
+              if [ "$PUBLISHING_SCOPE" == "none" ]; then
+                PUBLISHING_SCOPE="utilities-and-above"
+              elif [ "$PUBLISHING_SCOPE" == "services-and-above" ]; then
+                PUBLISHING_SCOPE="full-pipeline"
+              fi
+              echo "✅ Utilities changes detected - will publish utilities aggregate and main package"
+            fi
+            
+          elif [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "📋 Trigger: Manual workflow dispatch"
+            echo "📦 Requested scope: ${{ github.event.inputs.package_scope }}"
+            
+            # For manual dispatch, respect the selected scope
+            case "${{ github.event.inputs.package_scope }}" in
+              "individual-only")
+                PUBLISHING_SCOPE="individual-only"
+                echo "🎯 Scope: Individual packages only"
+                ;;
+              "aggregate-and-above")
+                PUBLISH_SERVICES_AGGREGATE="true"
+                PUBLISH_UTILITIES_AGGREGATE="true"
+                PUBLISH_MAIN_PACKAGE="true"
+                PUBLISHING_SCOPE="aggregate-and-above"
+                echo "🎯 Scope: Aggregate packages and main package"
+                ;;
+              "main-only")
+                PUBLISH_MAIN_PACKAGE="true"
+                PUBLISHING_SCOPE="main-only"
+                echo "🎯 Scope: Main package only"
+                ;;
+              "full-pipeline")
+                PUBLISH_SERVICES_AGGREGATE="true"
+                PUBLISH_UTILITIES_AGGREGATE="true"
+                PUBLISH_MAIN_PACKAGE="true"
+                PUBLISHING_SCOPE="full-pipeline"
+                echo "🎯 Scope: Full publishing pipeline"
+                ;;
+            esac
+          fi
+          
+          # Set outputs
+          echo "should-publish-services-aggregate=$PUBLISH_SERVICES_AGGREGATE" >> $GITHUB_OUTPUT
+          echo "should-publish-utilities-aggregate=$PUBLISH_UTILITIES_AGGREGATE" >> $GITHUB_OUTPUT
+          echo "should-publish-main-package=$PUBLISH_MAIN_PACKAGE" >> $GITHUB_OUTPUT
+          echo "publishing-scope=$PUBLISHING_SCOPE" >> $GITHUB_OUTPUT
+          
+          echo ""
+          echo "📊 DEPENDENCY CHAIN DECISIONS:"
+          echo "   Services aggregate: $PUBLISH_SERVICES_AGGREGATE"
+          echo "   Utilities aggregate: $PUBLISH_UTILITIES_AGGREGATE"
+          echo "   Main package: $PUBLISH_MAIN_PACKAGE"
+          echo "   Publishing scope: $PUBLISHING_SCOPE"
+          echo "=========================================="
 
   publish-individual-services:
+    name: "Publish Individual Services"
     needs: detect-changes
-    if: needs.detect-changes.outputs.individual-services != '[]'
+    if: |
+      (github.event_name == 'push' && 
+       (needs.detect-changes.outputs.individual-services != '[]' || 
+        (needs.detect-changes.outputs.services-changed == 'true' && needs.detect-changes.outputs.individual-services == '[]'))) ||
+      (github.event_name == 'workflow_dispatch' && 
+       (github.event.inputs.package_scope == 'individual-only' || 
+        github.event.inputs.package_scope == 'aggregate-and-above' || 
+        github.event.inputs.package_scope == 'full-pipeline') &&
+       (needs.detect-changes.outputs.individual-services != '[]' || github.event.inputs.force_publish == 'true'))
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         service: ${{ fromJson(needs.detect-changes.outputs.individual-services) }}
+    outputs:
+      individual-services-status: ${{ job.status }}
+      services-published: ${{ steps.publish-status.outputs.services-published }}
     steps:
       - uses: actions/checkout@v4
 
@@ -187,28 +245,68 @@ jobs:
 
       - name: Clean npm cache
         run: npm cache clean --force
+
+      - name: Log publishing phase
+        run: |
+          echo "=========================================="
+          echo "🚀 PHASE 1: INDIVIDUAL SERVICES PUBLISHING"
+          echo "=========================================="
+          echo "📦 Publishing individual service: ${{ matrix.service }}"
+          echo "📋 Package: @taleofddh/${{ matrix.service }}"
+          echo "🔄 Trigger: ${{ github.event_name }}"
+          echo "📅 Started at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "=========================================="
 
       - name: Install dependencies
         run: |
           cd services/${{ matrix.service }}
+          echo "Installing dependencies for @taleofddh/${{ matrix.service }}"
           npm install
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish individual service
+        id: publish
         run: |
           cd services/${{ matrix.service }}
+          echo "Publishing @taleofddh/${{ matrix.service }}"
           npm publish
+          echo "✅ Successfully published @taleofddh/${{ matrix.service }}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  publish-individual-utilities:
+      - name: Set publish status
+        id: publish-status
+        if: always()
+        run: |
+          if [ "${{ steps.publish.outcome }}" == "success" ]; then
+            echo "services-published=${{ matrix.service }}" >> $GITHUB_OUTPUT
+            echo "✅ Individual service ${{ matrix.service }} published successfully"
+          else
+            echo "❌ Individual service ${{ matrix.service }} failed to publish"
+            exit 1
+          fi
+  p
+ublish-individual-utilities:
+    name: "Publish Individual Utilities"
     needs: detect-changes
-    if: needs.detect-changes.outputs.individual-utilities != '[]'
+    if: |
+      (github.event_name == 'push' && 
+       (needs.detect-changes.outputs.individual-utilities != '[]' || 
+        (needs.detect-changes.outputs.utilities-changed == 'true' && needs.detect-changes.outputs.individual-utilities == '[]'))) ||
+      (github.event_name == 'workflow_dispatch' && 
+       (github.event.inputs.package_scope == 'individual-only' || 
+        github.event.inputs.package_scope == 'aggregate-and-above' || 
+        github.event.inputs.package_scope == 'full-pipeline') &&
+       (needs.detect-changes.outputs.individual-utilities != '[]' || github.event.inputs.force_publish == 'true'))
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         utility: ${{ fromJson(needs.detect-changes.outputs.individual-utilities) }}
+    outputs:
+      individual-utilities-status: ${{ job.status }}
+      utilities-published: ${{ steps.publish-status.outputs.utilities-published }}
     steps:
       - uses: actions/checkout@v4
 
@@ -229,24 +327,63 @@ jobs:
       - name: Clean npm cache
         run: npm cache clean --force
 
+      - name: Log publishing phase
+        run: |
+          echo "=========================================="
+          echo "🚀 PHASE 1: INDIVIDUAL UTILITIES PUBLISHING"
+          echo "=========================================="
+          echo "📦 Publishing individual utility: ${{ matrix.utility }}"
+          echo "📋 Package: @taleofddh/${{ matrix.utility }}"
+          echo "🔄 Trigger: ${{ github.event_name }}"
+          echo "📅 Started at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "=========================================="
+
       - name: Install dependencies
         run: |
           cd utilities/${{ matrix.utility }}
+          echo "Installing dependencies for @taleofddh/${{ matrix.utility }}"
           npm install
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish individual utility
+        id: publish
         run: |
           cd utilities/${{ matrix.utility }}
+          echo "Publishing @taleofddh/${{ matrix.utility }}"
           npm publish
+          echo "✅ Successfully published @taleofddh/${{ matrix.utility }}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  publish-main-package:
-    needs: [publish-services, publish-utilities]
-    if: always() && (needs.publish-services.result == 'success' || needs.publish-utilities.result == 'success')
+      - name: Set publish status
+        id: publish-status
+        if: always()
+        run: |
+          if [ "${{ steps.publish.outcome }}" == "success" ]; then
+            echo "utilities-published=${{ matrix.utility }}" >> $GITHUB_OUTPUT
+            echo "✅ Individual utility ${{ matrix.utility }} published successfully"
+          else
+            echo "❌ Individual utility ${{ matrix.utility }} failed to publish"
+            exit 1
+          fi
+
+  publish-services-aggregate:
+    name: "Publish Services Aggregate"
+    needs: [detect-changes, publish-individual-services]
+    if: |
+      always() && 
+      (needs.publish-individual-services.result == 'success' || needs.publish-individual-services.result == 'skipped') &&
+      ((github.event_name == 'push' && 
+        (needs.detect-changes.outputs.services-changed == 'true' || 
+         needs.detect-changes.outputs.individual-services != '[]')) ||
+       (github.event_name == 'workflow_dispatch' && 
+        (github.event.inputs.package_scope == 'aggregate-and-above' || 
+         github.event.inputs.package_scope == 'full-pipeline') &&
+        (needs.detect-changes.outputs.services-changed == 'true' || github.event.inputs.force_publish == 'true')))
     runs-on: ubuntu-latest
+    outputs:
+      services-aggregate-status: ${{ job.status }}
     steps:
       - uses: actions/checkout@v4
 
@@ -267,12 +404,241 @@ jobs:
       - name: Clean npm cache
         run: npm cache clean --force
 
+      - name: Log publishing phase
+        run: |
+          echo "=========================================="
+          echo "🚀 PHASE 2: AGGREGATE SERVICES PUBLISHING"
+          echo "=========================================="
+          echo "📦 Publishing services aggregate package"
+          echo "📋 Package: @taleofddh/services"
+          echo "✅ Prerequisites: Individual services publishing completed (${{ needs.publish-individual-services.result }})"
+          echo "📊 Individual services published: ${{ needs.detect-changes.outputs.individual-services }}"
+          echo "🔄 Trigger: ${{ github.event_name }}"
+          echo "📅 Started at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "=========================================="
+
+      - name: Wait for individual packages availability
+        run: |
+          echo "Waiting briefly for individual packages to be available in registry..."
+          sleep 10
+
       - name: Install dependencies
-        run: npm install
+        run: |
+          cd services
+          echo "Installing dependencies for @taleofddh/services aggregate"
+          npm install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish services aggregate
+        id: publish
+        run: |
+          cd services
+          echo "Publishing @taleofddh/services aggregate package"
+          npm publish
+          echo "✅ Successfully published @taleofddh/services aggregate"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log completion status
+        if: always()
+        run: |
+          if [ "${{ steps.publish.outcome }}" == "success" ]; then
+            echo "✅ Services aggregate publishing completed successfully"
+          else
+            echo "❌ Services aggregate publishing failed"
+            exit 1
+          fi
+
+  publish-utilities-aggregate:
+    name: "Publish Utilities Aggregate"
+    needs: [detect-changes, publish-individual-utilities]
+    if: |
+      always() && 
+      (needs.publish-individual-utilities.result == 'success' || needs.publish-individual-utilities.result == 'skipped') &&
+      ((github.event_name == 'push' && 
+        (needs.detect-changes.outputs.utilities-changed == 'true' || 
+         needs.detect-changes.outputs.individual-utilities != '[]')) ||
+       (github.event_name == 'workflow_dispatch' && 
+        (github.event.inputs.package_scope == 'aggregate-and-above' || 
+         github.event.inputs.package_scope == 'full-pipeline') &&
+        (needs.detect-changes.outputs.utilities-changed == 'true' || github.event.inputs.force_publish == 'true')))
+    runs-on: ubuntu-latest
+    outputs:
+      utilities-aggregate-status: ${{ job.status }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@taleofddh'
+
+      - name: Configure npm authentication
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
+          echo "@taleofddh:registry=https://npm.pkg.github.com/" >> ~/.npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean npm cache
+        run: npm cache clean --force
+
+      - name: Log publishing phase
+        run: |
+          echo "=========================================="
+          echo "🚀 PHASE 2: AGGREGATE UTILITIES PUBLISHING"
+          echo "=========================================="
+          echo "📦 Publishing utilities aggregate package"
+          echo "📋 Package: @taleofddh/utilities"
+          echo "✅ Prerequisites: Individual utilities publishing completed (${{ needs.publish-individual-utilities.result }})"
+          echo "📊 Individual utilities published: ${{ needs.detect-changes.outputs.individual-utilities }}"
+          echo "🔄 Trigger: ${{ github.event_name }}"
+          echo "📅 Started at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "=========================================="
+
+      - name: Wait for individual packages availability
+        run: |
+          echo "Waiting briefly for individual packages to be available in registry..."
+          sleep 10
+
+      - name: Install dependencies
+        run: |
+          cd utilities
+          echo "Installing dependencies for @taleofddh/utilities aggregate"
+          npm install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish utilities aggregate
+        id: publish
+        run: |
+          cd utilities
+          echo "Publishing @taleofddh/utilities aggregate package"
+          npm publish
+          echo "✅ Successfully published @taleofddh/utilities aggregate"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log completion status
+        if: always()
+        run: |
+          if [ "${{ steps.publish.outcome }}" == "success" ]; then
+            echo "✅ Utilities aggregate publishing completed successfully"
+          else
+            echo "❌ Utilities aggregate publishing failed"
+            exit 1
+          fi
+
+  publish-main-package:
+    name: "Publish Main Package"
+    needs: [detect-changes, publish-services-aggregate, publish-utilities-aggregate]
+    if: |
+      always() && 
+      (
+        (needs.publish-services-aggregate.result == 'success' && needs.publish-utilities-aggregate.result == 'success') ||
+        (needs.publish-services-aggregate.result == 'success' && needs.publish-utilities-aggregate.result == 'skipped') ||
+        (needs.publish-services-aggregate.result == 'skipped' && needs.publish-utilities-aggregate.result == 'success')
+      ) &&
+      ((github.event_name == 'push' && 
+        (needs.detect-changes.outputs.services-changed == 'true' || 
+         needs.detect-changes.outputs.utilities-changed == 'true' ||
+         needs.detect-changes.outputs.individual-services != '[]' ||
+         needs.detect-changes.outputs.individual-utilities != '[]')) ||
+       (github.event_name == 'workflow_dispatch' && 
+        (github.event.inputs.package_scope == 'main-only' || 
+         github.event.inputs.package_scope == 'full-pipeline') &&
+        (needs.detect-changes.outputs.services-changed == 'true' || needs.detect-changes.outputs.utilities-changed == 'true' || github.event.inputs.force_publish == 'true')))
+    runs-on: ubuntu-latest
+    outputs:
+      main-package-status: ${{ job.status }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@taleofddh'
+
+      - name: Configure npm authentication
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
+          echo "@taleofddh:registry=https://npm.pkg.github.com/" >> ~/.npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean npm cache
+        run: npm cache clean --force
+
+      - name: Log publishing phase
+        run: |
+          echo "=========================================="
+          echo "🚀 PHASE 3: MAIN PACKAGE PUBLISHING"
+          echo "=========================================="
+          echo "📦 Publishing main package"
+          echo "📋 Package: @taleofddh/libraries"
+          echo "✅ Prerequisites:"
+          echo "   - Services aggregate: ${{ needs.publish-services-aggregate.result }}"
+          echo "   - Utilities aggregate: ${{ needs.publish-utilities-aggregate.result }}"
+          echo "🔄 Trigger: ${{ github.event_name }}"
+          echo "📅 Started at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "=========================================="
+
+      - name: Verify aggregate publishing prerequisites
+        run: |
+          SERVICES_STATUS="${{ needs.publish-services-aggregate.result }}"
+          UTILITIES_STATUS="${{ needs.publish-utilities-aggregate.result }}"
+          
+          echo "Verifying aggregate publishing prerequisites..."
+          
+          if [ "$SERVICES_STATUS" == "failure" ] || [ "$UTILITIES_STATUS" == "failure" ]; then
+            echo "❌ Cannot publish main package: One or more aggregate packages failed to publish"
+            echo "Services aggregate: $SERVICES_STATUS"
+            echo "Utilities aggregate: $UTILITIES_STATUS"
+            exit 1
+          fi
+          
+          if [ "$SERVICES_STATUS" == "success" ] || [ "$UTILITIES_STATUS" == "success" ]; then
+            echo "✅ Prerequisites met: At least one aggregate package published successfully"
+            echo "Services aggregate: $SERVICES_STATUS"
+            echo "Utilities aggregate: $UTILITIES_STATUS"
+          else
+            echo "❌ Cannot publish main package: No aggregate packages were published successfully"
+            exit 1
+          fi
+
+      - name: Wait for aggregate packages availability
+        run: |
+          echo "Waiting for aggregate packages to be available in registry..."
+          sleep 15
+
+      - name: Install dependencies
+        run: |
+          echo "Installing dependencies for @taleofddh/libraries main package"
+          npm install
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish main package
-        run: npm publish
+        id: publish
+        run: |
+          echo "Publishing @taleofddh/libraries main package"
+          npm publish
+          echo "✅ Successfully published @taleofddh/libraries main package"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log completion status
+        if: always()
+        run: |
+          if [ "${{ steps.publish.outcome }}" == "success" ]; then
+            echo "✅ Main package publishing completed successfully"
+            echo "🎉 Full publishing pipeline completed!"
+          else
+            echo "❌ Main package publishing failed"
+            exit 1
+          fi

@@ -1,7 +1,7 @@
 {
-  "name": "@taleofddh/tickettailor",
+  "name": "@taleofddh/distribution",
   "version": "1.2.0",
-  "description": "Tale of DDH ticket tailor api service wrappers for AWS Lambda",
+  "description": "Tale of DDH content distribution service wrappers for AWS Lambda",
   "type": "module",
   "main": "index.js",
   "repository": {
@@ -11,15 +11,14 @@
   "keywords": [
     "aws",
     "lambda",
-    "ticket",
-    "tailor",
-    "api",
-    "rest"
+    "content",
+    "distribution",
+    "cloudfront"
   ],
-  "dependencies": {
-    "axios": "^1.13.1"
+  "dependencies": {},
+  "devDependencies": {
+    "@aws-sdk/cloudfront-signer": "^3.926.0"
   },
-  "devDependencies": {},
   "engines": {
     "node": ">=22.0.0"
   },

@@ -38,6 +38,22 @@ function isInDevelopmentRepo() {
     return false;
 }
 
+// Check if running in production environment
+function isProductionEnvironment() {
+    return process.env.NODE_ENV === 'production' || process.env.npm_config_production === 'true';
+}
+
+// Get install command based on environment
+function getInstallCommand() {
+    if (isProductionEnvironment()) {
+        console.log(`${colors.yellow}🏭 Production environment detected - skipping devDependencies${colors.reset}`);
+        return 'npm install --production';
+    } else {
+        console.log(`${colors.cyan}🔧 Development environment detected - including devDependencies${colors.reset}`);
+        return 'npm install';
+    }
+}
+
 // Function to execute command with error handling
 function executeCommand(command, directory = rootDir, description = '') {
     console.log(`${colors.blue}📦 ${description || `Running: ${command}`}${colors.reset}`);
@@ -161,7 +177,7 @@ function setupServicesOnly() {
     
     // 1. Install services aggregate dependencies
     console.log(`${colors.bright}1. Installing services aggregate dependencies...${colors.reset}`);
-    const servicesSuccess = executeCommand('npm install', servicesDir, 'Installing services aggregate dependencies');
+    const servicesSuccess = executeCommand(getInstallCommand(), servicesDir, 'Installing services aggregate dependencies');
     if (servicesSuccess) {
         setupResults.successful.push('Services aggregate dependencies');
     } else {
@@ -177,7 +193,7 @@ function setupServicesOnly() {
     let serviceInstallCount = 0;
     for (const pkg of servicePackages) {
         if (fs.existsSync(path.join(pkg.path, 'package.json'))) {
-            const success = executeCommand('npm install', pkg.path, `Installing ${pkg.name} service dependencies`);
+            const success = executeCommand(getInstallCommand(), pkg.path, `Installing ${pkg.name} service dependencies`);
             if (success) {
                 serviceInstallCount++;
             } else {
@@ -218,7 +234,7 @@ function setupUtilitiesOnly() {
     
     // 1. Install utilities aggregate dependencies
     console.log(`${colors.bright}1. Installing utilities aggregate dependencies...${colors.reset}`);
-    const utilitiesSuccess = executeCommand('npm install', utilitiesDir, 'Installing utilities aggregate dependencies');
+    const utilitiesSuccess = executeCommand(getInstallCommand(), utilitiesDir, 'Installing utilities aggregate dependencies');
     if (utilitiesSuccess) {
         setupResults.successful.push('Utilities aggregate dependencies');
     } else {
@@ -234,7 +250,7 @@ function setupUtilitiesOnly() {
     let utilityInstallCount = 0;
     for (const pkg of utilityPackages) {
         if (fs.existsSync(path.join(pkg.path, 'package.json'))) {
-            const success = executeCommand('npm install', pkg.path, `Installing ${pkg.name} utility dependencies`);
+            const success = executeCommand(getInstallCommand(), pkg.path, `Installing ${pkg.name} utility dependencies`);
             if (success) {
                 utilityInstallCount++;
             } else {
@@ -305,7 +321,7 @@ function setupDevelopmentEnvironment() {
     
     // 1. Install root dependencies
     console.log(`${colors.bright}1. Installing root dependencies...${colors.reset}`);
-    const rootSuccess = executeCommand('npm install', rootDir, 'Installing root dependencies');
+    const rootSuccess = executeCommand(getInstallCommand(), rootDir, 'Installing root dependencies');
     if (rootSuccess) {
         setupResults.successful.push('Root dependencies');
     } else {
@@ -314,7 +330,7 @@ function setupDevelopmentEnvironment() {
     
     // 2. Install services dependencies
     console.log(`\n${colors.bright}2. Installing services aggregate dependencies...${colors.reset}`);
-    const servicesSuccess = executeCommand('npm install', servicesDir, 'Installing services aggregate dependencies');
+    const servicesSuccess = executeCommand(getInstallCommand(), servicesDir, 'Installing services aggregate dependencies');
     if (servicesSuccess) {
         setupResults.successful.push('Services aggregate dependencies');
     } else {
@@ -323,7 +339,7 @@ function setupDevelopmentEnvironment() {
     
     // 3. Install utilities dependencies
     console.log(`\n${colors.bright}3. Installing utilities aggregate dependencies...${colors.reset}`);
-    const utilitiesSuccess = executeCommand('npm install', utilitiesDir, 'Installing utilities aggregate dependencies');
+    const utilitiesSuccess = executeCommand(getInstallCommand(), utilitiesDir, 'Installing utilities aggregate dependencies');
     if (utilitiesSuccess) {
         setupResults.successful.push('Utilities aggregate dependencies');
     } else {
@@ -339,7 +355,7 @@ function setupDevelopmentEnvironment() {
     let serviceInstallCount = 0;
     for (const pkg of servicePackages) {
         if (fs.existsSync(path.join(pkg.path, 'package.json'))) {
-            const success = executeCommand('npm install', pkg.path, `Installing ${pkg.name} service dependencies`);
+            const success = executeCommand(getInstallCommand(), pkg.path, `Installing ${pkg.name} service dependencies`);
             if (success) {
                 serviceInstallCount++;
             } else {
@@ -361,7 +377,7 @@ function setupDevelopmentEnvironment() {
     let utilityInstallCount = 0;
     for (const pkg of utilityPackages) {
         if (fs.existsSync(path.join(pkg.path, 'package.json'))) {
-            const success = executeCommand('npm install', pkg.path, `Installing ${pkg.name} utility dependencies`);
+            const success = executeCommand(getInstallCommand(), pkg.path, `Installing ${pkg.name} utility dependencies`);
             if (success) {
                 utilityInstallCount++;
             } else {

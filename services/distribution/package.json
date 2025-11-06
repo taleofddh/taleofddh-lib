@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/distribution",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Tale of DDH content distribution service wrappers for AWS Lambda",
   "type": "module",
   "main": "index.js",
@@ -17,7 +17,7 @@
   ],
   "dependencies": {},
   "devDependencies": {
-    "@aws-sdk/cloudfront-signer": "^3.926.0"
+    "@aws-sdk/cloudfront-signer": "^3.921.0"
   },
   "engines": {
     "node": ">=22.0.0"

@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/message",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Tale of DDH messaging service wrappers for AWS Lambda",
   "type": "module",
   "main": "index.js",

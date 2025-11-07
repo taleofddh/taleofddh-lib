@@ -4,7 +4,7 @@ class DistributionService {
     constructor() {
     }
 
-    async getSignedUrl(params) {
+    async getSignedUrlWithParameters(params) {
         return getSignedUrl(params);
     }
 
@@ -12,7 +12,7 @@ class DistributionService {
         return getSignedUrl(params);
     }
 
-    async getSignedCookies(params) {
+    async getSignedCookiesWithParameters(params) {
         return getSignedCookies(params);
     }
 
@@ -24,9 +24,9 @@ class DistributionService {
 
 // Export a singleton instance
 const distributionService = new DistributionService();
-export const getSignedUrl = (params) => distributionService.getSignedUrl(params);
+export const getSignedUrlWithParameters = (params) => distributionService.getSignedUrlWithParameters(params);
 export const getSignedUrlWithPolicy = (params) => distributionService.getSignedUrlWithPolicy(params);
-export const getSignedCookies  = (params) => distributionService.getSignedCookies (params);
+export const getSignedCookiesWithParameters  = (params) => distributionService.getSignedCookiesWithParameters (params);
 export const getSignedCookiesWithPolicy = (params) => distributionService.getSignedCookiesWithPolicy(params);
 
 // Also export the class for backward compatibility

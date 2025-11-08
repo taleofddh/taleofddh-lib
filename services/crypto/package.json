@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/crypto",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "description": "Tale of DDH crypto service wrappers for AWS Lambda",
   "type": "module",
   "main": "index.js",

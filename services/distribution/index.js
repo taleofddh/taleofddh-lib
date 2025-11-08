@@ -4,23 +4,23 @@ class DistributionService {
     constructor() {
     }
 
-    async getSignedUrlWithParameters(params) {
+    getSignedUrlWithParameters(params) {
         return getSignedUrl(params);
     }
 
-    async getSignedUrlWithPolicy(params) {
+    getSignedUrlWithPolicy(params) {
         return getSignedUrl(params);
     }
 
-    async getSignedCookiesWithParameters(params) {
+    getSignedCookiesWithParameters(params) {
         return getSignedCookies(params);
     }
 
-    async getSignedCookiesWithPolicy(params) {
+    getSignedCookiesWithPolicy(params) {
         return getSignedCookies(params);
     }
 
-    async getSignatureParameters(publicKeyId, privateKey, isPolicy = false, prefix = "", minutesToExpire = 30, minutesToGrant = 0, ipAddress = "0.0.0.0/0") {
+    getSignatureParameters(publicKeyId, privateKey, isPolicy = false, prefix = "", minutesToExpire = 30, minutesToGrant = 0, ipAddress = "0.0.0.0/0") {
         const params = {};
         const expiryDate = new Date(new Date().setMinutes(new Date().getMinutes() + minutesToExpire));
         const grantDate = new Date(new Date().setMinutes(new Date().getMinutes() + minutesToGrant));

@@ -17,11 +17,11 @@ class StorageService {
                     reject(err);
                 }
                 else {
-                    console.log(data);
+                    //console.log(data);
                     let objects = data.CommonPrefixes.map((commonPrefix) => {
                         return commonPrefix.Prefix.substring(params.Prefix.length).replace('/', '');
                     });
-                    console.log(objects);
+                    //console.log(objects);
                     resolve(objects);
                 }
             });
@@ -37,11 +37,11 @@ class StorageService {
                     reject(err);
                 }
                 else {
-                    console.log(data);
+                    //console.log(data);
                     let objects = data.Contents.map((object) => {
                         return object.Key.substring(params.Prefix.length);
                     });
-                    console.log(objects);
+                    //console.log(objects);
                     resolve(objects);
                 }
             });

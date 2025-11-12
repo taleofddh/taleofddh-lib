@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/whatsapp",
-  "version": "1.3.2",
+  "version": "2.0.0",
   "description": "Tale of DDH whatsapp api service wrappers for AWS Lambda",
   "type": "module",
   "main": "index.js",

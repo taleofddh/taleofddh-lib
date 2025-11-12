@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/middleware",
-  "version": "1.3.2",
+  "version": "2.0.0",
   "description": "Common middleware functions for Lambda handlers",
   "type": "module",
   "main": "index.js",

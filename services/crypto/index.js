@@ -7,6 +7,23 @@ class CryptoService {
         });
     }
 
+    handleError(error, methodName, options = {}) {
+        const serviceName = this.constructor.name;
+        console.error(`[${serviceName}.${methodName}] Error:`, {
+            message: error.message,
+            code: error.code || error.name,
+            statusCode: error.$metadata?.httpStatusCode,
+            requestId: error.$metadata?.requestId
+        });
+        
+        // If a fallback value is provided, return it instead of throwing
+        if (options.fallback !== undefined) {
+            return options.fallback;
+        }
+        
+        throw error;
+    }
+
     async decrypt(env) {
         const functionName = process.env.AWS_LAMBDA_FUNCTION_NAME;
         const encrypted = process.env[env];
@@ -24,9 +41,8 @@ class CryptoService {
             const data = await this.client.send(command);
             console.info(`Environment variable ${env} decrypted`)
             return data.Plaintext.toString('ascii');
-        } catch (err) {
-            console.log('Decryption error:', err);
-            throw err;
+        } catch (error) {
+            this.handleError(error, 'decrypt');
         }
     }
 
@@ -42,9 +58,8 @@ class CryptoService {
             const data = await this.client.send(command);
             console.info('Data encrypted successfully');
             return data.CiphertextBlob.toString('base64');
-        } catch (err) {
-            console.log('Encryption error:', err);
-            throw err;
+        } catch (error) {
+            this.handleError(error, 'encrypt');
         }
     }
 }

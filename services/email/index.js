@@ -7,19 +7,31 @@ class EmailService {
         });
     }
 
+    handleError(error, methodName, options = {}) {
+        const serviceName = this.constructor.name;
+        console.error(`[${serviceName}.${methodName}] Error:`, {
+            message: error.message,
+            code: error.code || error.name,
+            statusCode: error.$metadata?.httpStatusCode,
+            requestId: error.$metadata?.requestId
+        });
+        
+        // If a fallback value is provided, return it instead of throwing
+        if (options.fallback !== undefined) {
+            return options.fallback;
+        }
+        
+        throw error;
+    }
+
     async send(params) {
         const command = new SendTemplatedEmailCommand(params);
 
-        return new Promise((resolve, reject) => {
-            this.client.send(command, function(err, data) {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    resolve(data);
-                }
-            });
-        });
+        try {
+            return await this.client.send(command);
+        } catch (error) {
+            this.handleError(error, 'send');
+        }
     }
 
     async parse(params) {

@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/libraries",
-  "version": "1.3.2",
+  "version": "2.0.0",
   "description": "Tale of DDH shared libraries of services, utilities and more",
   "type": "module",
   "private": false,

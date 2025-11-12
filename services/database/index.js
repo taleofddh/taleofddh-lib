@@ -9,133 +9,111 @@ class DatabaseService {
         this.docClient = DynamoDBDocumentClient.from(this.client);
     }
 
+    handleError(error, methodName, options = {}) {
+        const serviceName = this.constructor.name;
+        console.error(`[${serviceName}.${methodName}] Error:`, {
+            message: error.message,
+            code: error.code || error.name,
+            statusCode: error.$metadata?.httpStatusCode,
+            requestId: error.$metadata?.requestId
+        });
+        
+        if (options.fallback !== undefined) {
+            return options.fallback;
+        }
+        
+        throw error;
+    }
+
     async put(params) {
         const command = new PutCommand(params);
 
-        return new Promise((resolve, reject) => {
-            this.docClient.send(command, function(err, data) {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    resolve(data);
-                }
-            });
-        });
+        try {
+            return await this.docClient.send(command);
+        } catch (error) {
+            this.handleError(error, 'put');
+        }
     }
 
     async get(params) {
         const command = new GetCommand(params);
 
-        return new Promise((resolve, reject) => {
-            this.docClient.send(command, function(err, data) {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    resolve(data.Item);
-                }
-            });
-        });
+        try {
+            const data = await this.docClient.send(command);
+            return data.Item;
+        } catch (error) {
+            return this.handleError(error, 'get', { fallback: null });
+        }
     }
 
     async update(params) {
         const command = new UpdateCommand(params);
 
-        return new Promise((resolve, reject) => {
-            this.docClient.send(command, function(err, data) {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    resolve(data.Attributes);
-                }
-            });
-        });
+        try {
+            const data = await this.docClient.send(command);
+            return data.Attributes;
+        } catch (error) {
+            this.handleError(error, 'update');
+        }
     }
 
     async delete(params) {
         const command = new DeleteCommand(params);
 
-        return new Promise((resolve, reject) => {
-            this.docClient.send(command, function(err, data) {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    resolve(data);
-                }
-            });
-        });
+        try {
+            return await this.docClient.send(command);
+        } catch (error) {
+            this.handleError(error, 'delete');
+        }
     }
 
     async batchWrite(params) {
         const command = new BatchWriteCommand(params);
 
-        return new Promise((resolve, reject) => {
-            this.docClient.send(command, function(err, data) {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    resolve(data);
-                }
-            });
-        });
+        try {
+            return await this.docClient.send(command);
+        } catch (error) {
+            this.handleError(error, 'batchWrite');
+        }
     }
 
     async batchGet(params, table) {
         const command = new BatchGetCommand(params);
 
-        return new Promise((resolve, reject) => {
-            this.docClient.send(command, function(err, data) {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    let response = data.Responses[table].map((item) => {
-                        return item;
-                    })
-                    resolve(response);
-                }
+        try {
+            const data = await this.docClient.send(command);
+            return data.Responses[table].map((item) => {
+                return item;
             });
-        });
+        } catch (error) {
+            return this.handleError(error, 'batchGet', { fallback: [] });
+        }
     }
 
     async query(params) {
         const command = new QueryCommand(params);
 
-        return new Promise((resolve, reject) => {
-            this.docClient.send(command, function(err, data) {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    let response = data.Items.map((item) => {
-                        return item;
-                    })
-                    resolve(response);
-                }
+        try {
+            const data = await this.docClient.send(command);
+            return data.Items.map((item) => {
+                return item;
             });
-        });
+        } catch (error) {
+            return this.handleError(error, 'query', { fallback: [] });
+        }
     }
 
     async scan(params) {
         const command = new ScanCommand(params);
 
-        return new Promise((resolve, reject) => {
-            this.docClient.send(command, function(err, data) {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    let response = data.Items.map((item) => {
-                        return item;
-                    })
-                    resolve(response);
-                }
+        try {
+            const data = await this.docClient.send(command);
+            return data.Items.map((item) => {
+                return item;
             });
-        });
+        } catch (error) {
+            return this.handleError(error, 'scan', { fallback: [] });
+        }
     }
 }
 

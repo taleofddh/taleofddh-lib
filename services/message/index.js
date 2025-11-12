@@ -7,77 +7,69 @@ class MessageService {
         });
     }
 
+    handleError(error, methodName, options = {}) {
+        const serviceName = this.constructor.name;
+        console.error(`[${serviceName}.${methodName}] Error:`, {
+            message: error.message,
+            code: error.code || error.name,
+            statusCode: error.$metadata?.httpStatusCode,
+            requestId: error.$metadata?.requestId
+        });
+        
+        // If a fallback value is provided, return it instead of throwing
+        if (options.fallback !== undefined) {
+            return options.fallback;
+        }
+        
+        throw error;
+    }
+
     async send(params) {
         const command = new SendMessageCommand(params);
 
-        return new Promise((resolve, reject) => {
-            this.client.send(command, function(err, data) {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    resolve(data);
-                }
-            });
-        });
+        try {
+            return await this.client.send(command);
+        } catch (error) {
+            this.handleError(error, 'send');
+        }
     }
 
     async receive(params) {
         const command = new ReceiveMessageCommand(params);
 
-        return new Promise((resolve, reject) => {
-            this.client.send(command, function(err, data) {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    resolve(data);
-                }
-            });
-        });
+        try {
+            return await this.client.send(command);
+        } catch (error) {
+            return this.handleError(error, 'receive', { fallback: null });
+        }
     }
 
     async deleteMessage(params) {
         const command = new DeleteMessageCommand(params);
 
-        return new Promise((resolve, reject) => {
-            this.client.send(command, function(err, data) {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    resolve(data);
-                }
-            });
-        });
+        try {
+            return await this.client.send(command);
+        } catch (error) {
+            this.handleError(error, 'deleteMessage');
+        }
     }
 
     async receiveAndDelete(params) {
-        let command = new ReceiveMessageCommand(params);
+        const command = new ReceiveMessageCommand(params);
 
-        return new Promise((resolve, reject) => {
-            this.client.send(command, function(err, data) {
-                if (err) {
-                    console.log("Receive Error", err);
-                    reject(err);
-                } else if (data.Messages) {
-                    let deleteParams = {
-                        QueueUrl: params.QueueUrl,
-                        ReceiptHandle: data.Messages[0].ReceiptHandle
-                    };
-                    let command = new DeleteMessageCommand(deleteParams);
-                    this.client.send(command, function(err, data) {
-                        if (err) {
-                            console.log("Delete Error", err);
-                            reject(err);
-                        } else {
-                            console.log("Message Deleted", data);
-                            resolve(data);
-                        }
-                    });
-                }
-            });
-        });
+        try {
+            const data = await this.client.send(command);
+            if (data.Messages) {
+                const deleteParams = {
+                    QueueUrl: params.QueueUrl,
+                    ReceiptHandle: data.Messages[0].ReceiptHandle
+                };
+                const deleteCommand = new DeleteMessageCommand(deleteParams);
+                return await this.client.send(deleteCommand);
+            }
+        } catch (error) {
+            this.handleError(error, 'receiveAndDelete');
+        }
     }
 }
 

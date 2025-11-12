@@ -8,145 +8,117 @@ class StorageService {
         });
     }
 
+    handleError(error, methodName, options = {}) {
+        const serviceName = this.constructor.name;
+        console.error(`[${serviceName}.${methodName}] Error:`, {
+            message: error.message,
+            code: error.code || error.name,
+            statusCode: error.$metadata?.httpStatusCode,
+            requestId: error.$metadata?.requestId
+        });
+        
+        // If a fallback value is provided, return it instead of throwing
+        if (options.fallback !== undefined) {
+            return options.fallback;
+        }
+        
+        throw error;
+    }
+
     async listBucket(params) {
         const command = new ListObjectsV2Command(params);
 
-        return new Promise((resolve, reject) => {
-            this.client.send(command, (err, data) => {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    //console.log(data);
-                    let objects = data.CommonPrefixes.map((commonPrefix) => {
-                        return commonPrefix.Prefix.substring(params.Prefix.length).replace('/', '');
-                    });
-                    //console.log(objects);
-                    resolve(objects);
-                }
+        try {
+            const data = await this.client.send(command);
+            return data.CommonPrefixes.map((commonPrefix) => {
+                return commonPrefix.Prefix.substring(params.Prefix.length).replace('/', '');
             });
-        });
+        } catch (error) {
+            return this.handleError(error, 'listBucket', { fallback: [] });
+        }
     }
 
     async listFolder(params) {
         const command = new ListObjectsV2Command(params);
 
-        return new Promise((resolve, reject) => {
-            this.client.send(command, (err, data) => {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    //console.log(data);
-                    let objects = data.Contents.map((object) => {
-                        return object.Key.substring(params.Prefix.length);
-                    });
-                    //console.log(objects);
-                    resolve(objects);
-                }
+        try {
+            const data = await this.client.send(command);
+            return data.Contents.map((object) => {
+                return object.Key.substring(params.Prefix.length);
             });
-        });
+        } catch (error) {
+            return this.handleError(error, 'listFolder', { fallback: [] });
+        }
     }
 
     async getObject(params) {
         const command = new GetObjectCommand(params);
 
-        return new Promise((resolve, reject) => {
-            this.client.send(command, (err, data) => {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    resolve(data);
-                }
-            });
-        });
+        try {
+            return await this.client.send(command);
+        } catch (error) {
+            return this.handleError(error, 'getObject', { fallback: null });
+        }
     }
 
     async putObjectSignedUrl(params) {
         const command = new PutObjectCommand(params);
 
-        return new Promise(async (resolve, reject) => {
-            try {
-                const data = await getSignedUrl(this.client, command, { expiresIn: 3600 });
-                resolve(data);
-            } catch (err) {
-                reject(err);
-            }
-        });
+        try {
+            return await getSignedUrl(this.client, command, { expiresIn: 3600 });
+        } catch (error) {
+            this.handleError(error, 'putObjectSignedUrl');
+        }
     }
 
     async getObjectSignedUrl(params) {
         const command = new GetObjectCommand(params);
 
-        return new Promise(async (resolve, reject) => {
-            try {
-                const data = await getSignedUrl(this.client, command, { expiresIn: 3600 });
-                resolve(data);
-            } catch (err) {
-                reject(err);
-            }
-        });
+        try {
+            return await getSignedUrl(this.client, command, { expiresIn: 3600 });
+        } catch (error) {
+            this.handleError(error, 'getObjectSignedUrl');
+        }
     }
 
     async putObject(params) {
         const command = new PutObjectCommand(params);
 
-        return new Promise((resolve, reject) => {
-            this.client.send(command, (err, data) => {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    resolve(data);
-                }
-            });
-        });
+        try {
+            return await this.client.send(command);
+        } catch (error) {
+            this.handleError(error, 'putObject');
+        }
     }
 
     async deleteObject(params) {
         const command = new DeleteObjectCommand(params);
 
-        return new Promise((resolve, reject) => {
-            this.client.send(command, (err, data) => {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    resolve(data);
-                }
-            });
-        });
+        try {
+            return await this.client.send(command);
+        } catch (error) {
+            this.handleError(error, 'deleteObject');
+        }
     }
 
     async selectObjectContent(params) {
         const command = new SelectObjectContentCommand(params);
 
-        return new Promise((resolve, reject) => {
-            this.client.send(command, (err, data) => {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    resolve(data);
-                }
-            });
-        });
+        try {
+            return await this.client.send(command);
+        } catch (error) {
+            return this.handleError(error, 'selectObjectContent', { fallback: null });
+        }
     }
 
     async headObject(params) {
         const command = new HeadObjectCommand(params);
 
-        return new Promise((resolve, reject) => {
-            this.client.send(command, (err, data) => {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    resolve(data);
-                }
-            });
-        });
+        try {
+            return await this.client.send(command);
+        } catch (error) {
+            return this.handleError(error, 'headObject', { fallback: null });
+        }
     }
 }
 

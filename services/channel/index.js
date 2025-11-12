@@ -17,6 +17,23 @@ class ChannelService {
         };
     }
 
+    handleError(error, methodName, options = {}) {
+        const serviceName = this.constructor.name;
+        console.error(`[${serviceName}.${methodName}] Error:`, {
+            message: error.message,
+            code: error.code || error.name,
+            statusCode: error.$metadata?.httpStatusCode,
+            requestId: error.$metadata?.requestId
+        });
+        
+        // If a fallback value is provided, return it instead of throwing
+        if (options.fallback !== undefined) {
+            return options.fallback;
+        }
+        
+        throw error;
+    }
+
     async sendSMS(options = {}) {
         const {
             destinationNumber = "+447825034533",
@@ -50,18 +67,14 @@ class ChannelService {
 
         const command = new SendMessageCommand(params);
 
-        return new Promise((resolve, reject) => {
-            this.client.send(command, function (err, data) {
-                if (err) {
-                    console.log('SMS send error:', err.message);
-                    reject(err);
-                } else {
-                    const result = data["MessageResponse"]["Result"][destinationNumber]["StatusMessage"];
-                    console.log("Message sent! " + result);
-                    resolve(data);
-                }
-            });
-        });
+        try {
+            const data = await this.client.send(command);
+            // Preserve result extraction logic for StatusMessage
+            const result = data["MessageResponse"]["Result"][destinationNumber]["StatusMessage"];
+            return data;
+        } catch (error) {
+            this.handleError(error, 'sendSMS');
+        }
     }
 
     updateDefaultConfig(newConfig) {

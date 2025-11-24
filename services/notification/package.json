@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/notification",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Tale of DDH notification service wrappers for AWS Lambda",
   "type": "module",
   "main": "index.js",

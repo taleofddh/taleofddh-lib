@@ -121,13 +121,13 @@ class StorageService {
         }
     }
 
-     async storageOperation(operation, object, data) {
+     async operation(action, object, data) {
         const bucketName = process.env['S3_BUCKET'];
         const key = `${process.env['ENVIRONMENT']}/${process.env['SERVICE_NAME']}/${object}.json`;
         let response;
         let params;
         try {
-            switch(operation) {
+            switch(action) {
                 case 'getObject':
                     params = {
                         Bucket: bucketName,
@@ -190,7 +190,7 @@ export const putObject = (params) => storageService.putObject(params);
 export const deleteObject = (params) => storageService.deleteObject(params);
 export const selectObjectContent = (params) => storageService.selectObjectContent(params);
 export const headObject = (params) => storageService.headObject(params);
-export const storageOperation = (operation, object, data) => storageService.storageOperation(operation, object, data);
+export const operation = (action, object, data) => storageService.operation(action, object, data);
 
 // Also export as default for backward compatibility
 export default StorageService;

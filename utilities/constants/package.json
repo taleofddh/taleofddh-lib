@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/constants",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Shared constants and configuration values for Lambda functions",
   "type": "module",
   "main": "index.js",

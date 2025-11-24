@@ -116,12 +116,12 @@ class DatabaseService {
         }
     }
 
-    async databaseOperation(operation, table, data) {
+    async operation(action, table, data) {
         let tableName = process.env['ENVIRONMENT'] + '.' + process.env['APP_NAME'] + '.' + process.env['SERVICE_NAME'] + '.' + table;
         let response;
         let params;
         try {
-            switch (operation) {
+            switch (action) {
                 case 'getItem':
                     data.TableName = tableName;
                     params = data;
@@ -206,7 +206,7 @@ export const batchWrite = (params) => databaseService.batchWrite(params);
 export const batchGet = (params, table) => databaseService.batchGet(params, table);
 export const query = (params) => databaseService.query(params);
 export const scan = (params) => databaseService.scan(params);
-export const databaseOperation = (operation, table, data) => databaseService.databaseOperation(operation, table, data);
+export const operation = (action, table, data) => databaseService.operation(action, table, data);
 
 // Also export the class for backward compatibility
 export { DatabaseService as Database };

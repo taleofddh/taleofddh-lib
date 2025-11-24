@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/services",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Tale of DDH service wrappers for AWS Lambda",
   "type": "module",
   "main": "index.js",
@@ -18,21 +18,21 @@
     "wrappers"
   ],
   "dependencies": {
-    "@taleofddh/channel": "^2.2.0",
-    "@taleofddh/crypto": "^2.2.0",
-    "@taleofddh/database": "^2.2.0",
-    "@taleofddh/distribution": "^2.2.0",
-    "@taleofddh/drive": "^2.2.0",
-    "@taleofddh/email": "^2.2.0",
-    "@taleofddh/gmail": "^2.2.0",
-    "@taleofddh/identity": "^2.2.0",
-    "@taleofddh/message": "^2.2.0",
-    "@taleofddh/notification": "^2.2.0",
-    "@taleofddh/secret": "^2.2.0",
-    "@taleofddh/storage": "^2.2.0",
-    "@taleofddh/tickettailor": "^2.2.0",
-    "@taleofddh/whatsapp": "^2.2.0",
-    "@taleofddh/workbook": "^2.2.0"
+    "@taleofddh/channel": "^2.3.0",
+    "@taleofddh/crypto": "^2.3.0",
+    "@taleofddh/database": "^2.3.0",
+    "@taleofddh/distribution": "^2.3.0",
+    "@taleofddh/drive": "^2.3.0",
+    "@taleofddh/email": "^2.3.0",
+    "@taleofddh/gmail": "^2.3.0",
+    "@taleofddh/identity": "^2.3.0",
+    "@taleofddh/message": "^2.3.0",
+    "@taleofddh/notification": "^2.3.0",
+    "@taleofddh/secret": "^2.3.0",
+    "@taleofddh/storage": "^2.3.0",
+    "@taleofddh/tickettailor": "^2.3.0",
+    "@taleofddh/whatsapp": "^2.3.0",
+    "@taleofddh/workbook": "^2.3.0"
   },
   "devDependencies": {
     "jest": "^29.0.0"

@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/drive",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Tale of DDH google drive service wrappers for AWS Lambda",
   "type": "module",
   "main": "index.js",

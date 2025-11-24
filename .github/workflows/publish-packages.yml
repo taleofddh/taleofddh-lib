@@ -62,7 +62,7 @@ jobs:
           # Handle force publish scenario for manual dispatch
           if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ "${{ github.event.inputs.force_publish }}" == "true" ]; then
             echo "Force publish enabled - including all packages"
-            SERVICES_JSON='["channel","crypto","database","drive","gmail","identity","message","notification","secret","storage","tickettailor","whatsapp","workbook"]'
+            SERVICES_JSON='["channel","crypto","database","distribution","drive","gmail","identity","message","notification","secret","storage","tickettailor","whatsapp","workbook"]'
             UTILITIES_JSON='["array","constants","date","error","logger","middleware","response","text","validation"]'
           else
             # Detect changed service packages (exclude root package.json)
@@ -72,7 +72,7 @@ jobs:
             else
               # If no individual changes detected but services changed, publish all services
               if [ "${{ steps.changes.outputs.services }}" == "true" ]; then
-                SERVICES_JSON='["channel","crypto","database","drive","gmail","identity","message","notification","secret","storage","tickettailor","whatsapp","workbook"]'
+                SERVICES_JSON='["channel","crypto","database","distribution","drive","gmail","identity","message","notification","secret","storage","tickettailor","whatsapp","workbook"]'
               else
                 SERVICES_JSON="[]"
               fi

@@ -120,6 +120,63 @@ class StorageService {
             return this.handleError(error, 'headObject', { fallback: null });
         }
     }
+
+     async storageOperation(operation, object, data) {
+        const bucketName = process.env['S3_BUCKET'];
+        const key = `${process.env['ENVIRONMENT']}/${process.env['SERVICE_NAME']}/${object}.json`;
+        let response;
+        let params;
+        try {
+            switch(operation) {
+                case 'getObject':
+                    params = {
+                        Bucket: bucketName,
+                        Key: key
+                    }
+                    response = await getObject(params);
+                    break;
+                case 'putObject':
+                    params = {
+                        Bucket: bucketName,
+                        Key: key,
+                        Body: JSON.stringify(data),
+                        ContentType: 'application/json',
+                    }
+                    response = await putObject(params);
+                    break;
+                case 'deleteObject':
+                    params = {
+                        Bucket: bucketName,
+                        Key: key
+                    }
+                    response = await deleteObject(params);
+                    break;
+                case 'selectObjectContent':
+                    params = {
+                        Bucket: bucketName,
+                        Key: key,
+                        ExpressionType: 'SQL',
+                        Expression: data,
+                        InputSerialization: {
+                            CompressionType: 'NONE',
+                            JSON: {
+                                Type: 'DOCUMENT'
+                            }
+                        },
+                        OutputSerialization: {
+                            JSON: {}
+                        }
+                    }
+                    response = await selectObjectContent(params);
+                    break;
+                default:
+                    break;
+            }
+            return response;
+        } catch (error) {
+            console.error(error);
+        }
+    }
 }
 
 // Export a singleton instance
@@ -133,6 +190,7 @@ export const putObject = (params) => storageService.putObject(params);
 export const deleteObject = (params) => storageService.deleteObject(params);
 export const selectObjectContent = (params) => storageService.selectObjectContent(params);
 export const headObject = (params) => storageService.headObject(params);
+export const storageOperation = (operation, object, data) => storageService.storageOperation(operation, object, data);
 
 // Also export as default for backward compatibility
 export default StorageService;

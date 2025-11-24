@@ -8,7 +8,7 @@
  */
 export const ENVIRONMENT = {
   STAGE: process.env.STAGE || process.env.NODE_ENV || 'dev',
-  REGION: process.env.AWS_REGION || process.env.REGION || 'us-east-1',
+  REGION: process.env.AWS_REGION || process.env.REGION || 'eu-west-1',
   SERVICE_NAME: process.env.SERVICE_NAME || 'lambda-service'
 };
 
@@ -51,7 +51,7 @@ export const ERROR_CODES = {
  * Common AWS service configuration
  */
 export const AWS_CONFIG = {
-  REGION: process.env.AWS_REGION || process.env.REGION || 'us-east-1',
+  REGION: process.env.AWS_REGION || process.env.REGION || 'eu-west-1',
   S3_BUCKET: process.env.S3_BUCKET,
   EMAIL_NOTIFICATION_TOPIC: process.env.EMAIL_NOTIFICATION_TOPIC,
   TICKET_TAILOR_API_DOMAIN: process.env.TICKET_TAILOR_API_DOMAIN,

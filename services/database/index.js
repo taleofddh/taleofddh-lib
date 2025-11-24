@@ -115,6 +115,85 @@ class DatabaseService {
             return this.handleError(error, 'scan', { fallback: [] });
         }
     }
+
+    async databaseOperation(operation, table, data) {
+        let tableName = process.env['ENVIRONMENT'] + '.' + process.env['APP_NAME'] + '.' + process.env['SERVICE_NAME'] + '.' + table;
+        let response;
+        let params;
+        try {
+            switch (operation) {
+                case 'getItem':
+                    data.TableName = tableName;
+                    params = data;
+                    response = await get(params);
+                    break;
+                case 'getItems':
+                    params = {
+                        "RequestItems": {
+                            [tableName]: {
+                                "Keys": data
+                            }
+                        }
+                    }
+                    response = await batchGet(params, tableName);
+                    break;
+                case 'writeItem':
+                    data.TableName = tableName;
+                    params = data;
+                    response = await put(params);
+                    break;
+                case 'writeItems':
+                    params = {
+                        "RequestItems": {
+                            [tableName]: data
+                        }
+                    }
+                    response = await batchWrite(params);
+                    break;
+                case 'updateItem':
+                    data.TableName = tableName;
+                    params = data;
+                    response = await update(params);
+                    break;
+                case 'updateItems':
+                    params = {
+                        "RequestItems": {
+                            [tableName]: data
+                        }
+                    }
+                    response = await batchWrite(params);
+                    break;
+                case 'deleteItem':
+                    data.TableName = tableName;
+                    params = data;
+                    response = await deleteItem(params);
+                    break;
+                case 'deleteItems':
+                    params = {
+                        "RequestItems": {
+                            [tableName]: data
+                        }
+                    }
+                    response = await batchWrite(params);
+                    break;
+                case 'queryItems':
+                    data.TableName = tableName
+                    params = data;
+                    response = await query(params);
+                    break;
+                case 'scanItems':
+                    data.TableName = tableName
+                    params = data;
+                    response = await scan(params);
+                    break;
+                default:
+                    break;
+            }
+            return response;
+        } catch (error) {
+            console.error(error);
+        }
+    }
 }
 
 // Export a singleton instance
@@ -127,6 +206,7 @@ export const batchWrite = (params) => databaseService.batchWrite(params);
 export const batchGet = (params, table) => databaseService.batchGet(params, table);
 export const query = (params) => databaseService.query(params);
 export const scan = (params) => databaseService.scan(params);
+export const databaseOperation = (operation, table, data) => databaseService.databaseOperation(operation, table, data);
 
 // Also export the class for backward compatibility
 export { DatabaseService as Database };

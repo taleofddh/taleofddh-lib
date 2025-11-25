@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/text",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "Text template service for email content generation",
   "type": "module",
   "main": "index.js",

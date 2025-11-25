@@ -1,4 +1,5 @@
-const { SESClient, SendTemplatedEmailCommand } = require("@aws-sdk/client-ses");
+import { SESClient, SendTemplatedEmailCommand }  from "@aws-sdk/client-ses";
+import { simpleParser } from 'mailparser';
 
 class EmailService {
     constructor() {

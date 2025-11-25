@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/tickettailor",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "Tale of DDH ticket tailor api service wrappers for AWS Lambda",
   "type": "module",
   "main": "index.js",

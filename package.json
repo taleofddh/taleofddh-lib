@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/libraries",
-  "version": "2.3.1",
+  "version": "3.0.0",
   "description": "Tale of DDH shared libraries of services, utilities and more",
   "type": "module",
   "private": false,
@@ -38,7 +38,7 @@
   },
   "homepage": "https://github.com/taleofddh/taleofddh-lib#readme",
   "devDependencies": {
-    "jest": "^29.0.0",
-    "js-yaml": "^4.1.0"
+    "jest": "^30.3.0",
+    "js-yaml": "^4.1.1"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/drive",
-  "version": "2.3.1",
+  "version": "3.0.0",
   "description": "Tale of DDH google drive service wrappers for AWS Lambda",
   "type": "module",
   "main": "index.js",
@@ -16,8 +16,8 @@
     "file"
   ],
   "dependencies": {
-    "@googleapis/drive": "^19.1.0",
-    "@googleapis/oauth2": "^4.0.0"
+    "@googleapis/drive": "^20.1.0"
+    "@googleapis/oauth2": "^5.0.1"
   },
   "devDependencies": {},
   "engines": {

@@ -16,7 +16,7 @@
     "file"
   ],
   "dependencies": {
-    "@googleapis/drive": "^20.1.0"
+    "@googleapis/drive": "^20.1.0",
     "@googleapis/oauth2": "^5.0.1"
   },
   "devDependencies": {},

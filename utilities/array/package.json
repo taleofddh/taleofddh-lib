@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/array",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Array manipulation utilities for Lambda functions",
   "type": "module",
   "main": "index.js",

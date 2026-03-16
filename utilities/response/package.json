@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/response",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "HTTP response utilities with CORS headers for Lambda functions",
   "type": "module",
   "main": "index.js",

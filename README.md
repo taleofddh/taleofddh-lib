@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
-[![Version](https://img.shields.io/badge/version-2.3.0-blue.svg)](https://github.com/taleofddh/taleofddh-lib)
+[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](https://github.com/taleofddh/taleofddh-lib)
 
 A comprehensive collection of shared libraries providing common services, utilities, and tools for AWS Lambda applications and Node.js projects.
 
@@ -56,21 +56,21 @@ The services package includes the following modules:
 
 | Service | Description | Version |
 |---------|-------------|---------|
-| **channel** | Communication channel management | 2.3.0 |
-| **crypto** | Cryptographic operations and utilities | 2.3.0 |
-| **database** | Database connection and query utilities | 2.3.0 |
-| **distribution** | Content distribution and delivery services | 2.3.0 |
-| **drive** | Google Drive integration | 2.3.0 |
-| **email** | Email service integration and utilities | 2.3.0 |
-| **gmail** | Gmail API wrapper | 2.3.0 |
-| **identity** | Identity and authentication services | 2.3.0 |
-| **message** | Message processing and handling | 2.3.0 |
-| **notification** | Push notification services | 2.3.0 |
-| **secret** | AWS Secrets Manager integration | 2.3.0 |
-| **storage** | AWS S3 and storage utilities | 2.3.0 |
-| **tickettailor** | TicketTailor API integration | 2.3.0 |
-| **whatsapp** | WhatsApp Business API wrapper | 2.3.0 |
-| **workbook** | Excel/spreadsheet processing | 2.3.0 |
+| **channel** | Communication channel management | 3.0.0 |
+| **crypto** | Cryptographic operations and utilities | 3.0.0 |
+| **database** | Database connection and query utilities | 3.0.0 |
+| **distribution** | Content distribution and delivery services | 3.0.0 |
+| **drive** | Google Drive integration | 3.0.0 |
+| **email** | Email service integration and utilities | 3.0.0 |
+| **gmail** | Gmail API wrapper | 3.0.0 |
+| **identity** | Identity and authentication services | 3.0.0 |
+| **message** | Message processing and handling | 3.0.0 |
+| **notification** | Push notification services | 3.0.0 |
+| **secret** | AWS Secrets Manager integration | 3.0.0 |
+| **storage** | AWS S3 and storage utilities | 3.0.0 |
+| **tickettailor** | TicketTailor API integration | 3.0.0 |
+| **whatsapp** | WhatsApp Business API wrapper | 3.0.0 |
+| **workbook** | Excel/spreadsheet processing | 3.0.0 |
 
 ## 🛠️ Utilities
 
@@ -78,15 +78,15 @@ The utilities package provides the following modules:
 
 | Utility | Description | Key Functions | Version |
 |---------|-------------|---------------|---------|
-| **array** | Array manipulation utilities | `distinctValues`, `groupBy`, `sortBy`, `chunk` | 2.3.0 |
-| **constants** | Application constants and enums | `HTTP_STATUS`, `ERROR_CODES`, `AWS_CONFIG` | 2.3.0 |
-| **date** | Date formatting and manipulation | `formatForDisplay`, `addDays`, `daysDifference` | 2.3.0 |
-| **error** | Error handling and classification | `classifyError`, `asyncHandler`, custom error classes | 2.3.0 |
-| **logger** | Structured logging utilities | Configurable logging with levels | 2.3.0 |
-| **middleware** | Express/Lambda middleware | `corsMiddleware`, `validationMiddleware`, `authMiddleware` | 2.3.0 |
-| **response** | HTTP response helpers | `createResponse`, `createErrorResponse`, CORS headers | 2.3.0 |
-| **text** | Text processing utilities | String manipulation and formatting | 2.3.0 |
-| **validation** | Input validation helpers | `validateEmail`, `validateUUID`, `sanitizeInput` | 2.3.0 |
+| **array** | Array manipulation utilities | `distinctValues`, `groupBy`, `sortBy`, `chunk` | 3.0.0 |
+| **constants** | Application constants and enums | `HTTP_STATUS`, `ERROR_CODES`, `AWS_CONFIG` | 3.0.0 |
+| **date** | Date formatting and manipulation | `formatForDisplay`, `addDays`, `daysDifference` | 3.0.0 |
+| **error** | Error handling and classification | `classifyError`, `asyncHandler`, custom error classes | 3.0.0 |
+| **logger** | Structured logging utilities | Configurable logging with levels | 3.0.0 |
+| **middleware** | Express/Lambda middleware | `corsMiddleware`, `validationMiddleware`, `authMiddleware` | 3.0.0 |
+| **response** | HTTP response helpers | `createResponse`, `createErrorResponse`, CORS headers | 3.0.0 |
+| **text** | Text processing utilities | String manipulation and formatting | 3.0.0 |
+| **validation** | Input validation helpers | `validateEmail`, `validateUUID`, `sanitizeInput` | 3.0.0 |
 
 ## 📦 Installation
 
@@ -594,3 +594,4 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 ---
 
 Built with ❤️ for the serverless community
+

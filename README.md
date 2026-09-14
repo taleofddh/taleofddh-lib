@@ -1,8 +1,9 @@
 # Tale of DDH Libraries
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
-[![Version](https://img.shields.io/badge/version-3.0.1-blue.svg)](https://github.com/taleofddh/taleofddh-lib)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D24.0.0-brightgreen.svg)](https://nodejs.org/)
+[![npm Version](https://img.shields.io/badge/npm-%3E%3D11.0.0-blue.svg)](https://www.npmjs.com/)
+[![Version](https://img.shields.io/badge/version-4.0.0-blue.svg)](https://github.com/taleofddh/taleofddh-lib)
 
 A comprehensive collection of shared libraries providing common services, utilities, and tools for AWS Lambda applications and Node.js projects.
 
@@ -264,8 +265,8 @@ asyncHandler(fn) // Wraps async functions for error handling
 
 ### Prerequisites
 
-- Node.js >= 22.0.0
-- npm or yarn
+- Node.js >= 24.0.0
+- npm >= 11.0.0
 
 ### Setup
 

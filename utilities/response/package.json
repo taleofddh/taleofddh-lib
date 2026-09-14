@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/response",
-  "version": "3.0.1",
+  "version": "4.0.0",
   "description": "HTTP response utilities with CORS headers for Lambda functions",
   "type": "module",
   "main": "index.js",
@@ -18,7 +18,8 @@
   "dependencies": {},
   "devDependencies": {},
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=24.0.0",
+    "npm": ">=11.0.0"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"

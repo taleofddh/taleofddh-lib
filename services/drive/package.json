@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/drive",
-  "version": "3.0.1",
+  "version": "4.0.0",
   "description": "Tale of DDH google drive service wrappers for AWS Lambda",
   "type": "module",
   "main": "index.js",
@@ -21,7 +21,8 @@
   },
   "devDependencies": {},
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=24.0.0",
+    "npm": ">=11.0.0"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"

@@ -62,24 +62,26 @@ jobs:
           # Handle force publish scenario for manual dispatch
           if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ "${{ github.event.inputs.force_publish }}" == "true" ]; then
             echo "Force publish enabled - including all packages"
-            SERVICES_JSON='["channel","crypto","database","distribution","drive","gmail","identity","message","notification","secret","storage","tickettailor","whatsapp","workbook"]'
+            SERVICES_JSON='["channel","crypto","database","distribution","drive","email","gmail","identity","message","notification","secret","storage","tickettailor","turnstile","whatsapp","workbook"]'
             UTILITIES_JSON='["array","constants","date","error","logger","middleware","response","text","validation"]'
           else
-            # Detect changed service packages (exclude root package.json)
-            SERVICES=$(git diff --name-only HEAD~1 HEAD | grep '^services/' | grep -v '^services/package\.json' | cut -d'/' -f2 | sort -u | tr '\n' ' ')
+            # Detect changed service packages (only files inside a package subdirectory,
+            # so aggregate-level files like services/index.js or services/package.json are excluded)
+            SERVICES=$(git diff --name-only HEAD~1 HEAD | grep -E '^services/[^/]+/' | cut -d'/' -f2 | sort -u | while read -r p; do [ -f "services/$p/package.json" ] && echo "$p"; done | tr '\n' ' ')
             if [ -n "$SERVICES" ]; then
               SERVICES_JSON=$(echo "$SERVICES" | sed 's/ *$//' | sed 's/ /","/g' | sed 's/^/["/' | sed 's/$/"]/')
             else
               # If no individual changes detected but services changed, publish all services
               if [ "${{ steps.changes.outputs.services }}" == "true" ]; then
-                SERVICES_JSON='["channel","crypto","database","distribution","drive","gmail","identity","message","notification","secret","storage","tickettailor","whatsapp","workbook"]'
+                SERVICES_JSON='["channel","crypto","database","distribution","drive","email","gmail","identity","message","notification","secret","storage","tickettailor","turnstile","whatsapp","workbook"]'
               else
                 SERVICES_JSON="[]"
               fi
             fi
             
-            # Detect changed utility packages (exclude root package.json)
-            UTILITIES=$(git diff --name-only HEAD~1 HEAD | grep '^utilities/' | grep -v '^utilities/package\.json' | cut -d'/' -f2 | sort -u | tr '\n' ' ')
+            # Detect changed utility packages (only files inside a package subdirectory,
+            # so aggregate-level files like utilities/index.js or utilities/package.json are excluded)
+            UTILITIES=$(git diff --name-only HEAD~1 HEAD | grep -E '^utilities/[^/]+/' | cut -d'/' -f2 | sort -u | while read -r p; do [ -f "utilities/$p/package.json" ] && echo "$p"; done | tr '\n' ' ')
             if [ -n "$UTILITIES" ]; then
               UTILITIES_JSON=$(echo "$UTILITIES" | sed 's/ *$//' | sed 's/ /","/g' | sed 's/^/["/' | sed 's/$/"]/')
             else

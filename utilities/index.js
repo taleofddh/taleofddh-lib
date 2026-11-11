@@ -11,6 +11,7 @@ export * as error from '@taleofddh/error';
 export * as logger from '@taleofddh/logger';
 export * as middleware from '@taleofddh/middleware';
 export * as constants from '@taleofddh/constants';
+export * as text from '@taleofddh/text';
 export * as validation from '@taleofddh/validation';
 
 

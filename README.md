@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D24.0.0-brightgreen.svg)](https://nodejs.org/)
 [![npm Version](https://img.shields.io/badge/npm-%3E%3D11.0.0-blue.svg)](https://www.npmjs.com/)
-[![Version](https://img.shields.io/badge/version-4.1.0-blue.svg)](https://github.com/taleofddh/taleofddh-lib)
+[![Version](https://img.shields.io/badge/version-4.1.1-blue.svg)](https://github.com/taleofddh/taleofddh-lib)
 
 A comprehensive collection of shared libraries providing common services, utilities, and tools for AWS Lambda applications and Node.js projects.
 
@@ -57,22 +57,22 @@ The services package includes the following modules:
 
 | Service | Description | Version |
 |---------|-------------|---------|
-| **channel** | Communication channel management | 4.1.0 |
-| **crypto** | Cryptographic operations and utilities | 4.1.0 |
-| **database** | Database connection and query utilities | 4.1.0 |
-| **distribution** | Content distribution and delivery services | 4.1.0 |
-| **drive** | Google Drive integration | 4.1.0 |
-| **email** | Email service integration and utilities | 4.1.0 |
-| **gmail** | Gmail API wrapper | 4.1.0 |
-| **identity** | Identity and authentication services | 4.1.0 |
-| **message** | Message processing and handling | 4.1.0 |
-| **notification** | Push notification services | 4.1.0 |
-| **secret** | AWS Secrets Manager integration | 4.1.0 |
-| **storage** | AWS S3 and storage utilities | 4.1.0 |
-| **tickettailor** | TicketTailor API integration | 4.1.0 |
-| **turnstile** | Cloudflare Turnstile captcha token verification | 4.1.0 |
-| **whatsapp** | WhatsApp Business API wrapper | 4.1.0 |
-| **workbook** | Excel/spreadsheet processing | 4.1.0 |
+| **channel** | Communication channel management | 4.1.1 |
+| **crypto** | Cryptographic operations and utilities | 4.1.1 |
+| **database** | Database connection and query utilities | 4.1.1 |
+| **distribution** | Content distribution and delivery services | 4.1.1 |
+| **drive** | Google Drive integration | 4.1.1 |
+| **email** | Email service integration and utilities | 4.1.1 |
+| **gmail** | Gmail API wrapper | 4.1.1 |
+| **identity** | Identity and authentication services | 4.1.1 |
+| **message** | Message processing and handling | 4.1.1 |
+| **notification** | Push notification services | 4.1.1 |
+| **secret** | AWS Secrets Manager integration | 4.1.1 |
+| **storage** | AWS S3 and storage utilities | 4.1.1 |
+| **tickettailor** | TicketTailor API integration | 4.1.1 |
+| **turnstile** | Cloudflare Turnstile captcha token verification | 4.1.1 |
+| **whatsapp** | WhatsApp Business API wrapper | 4.1.1 |
+| **workbook** | Excel/spreadsheet processing | 4.1.1 |
 
 ## 🛠️ Utilities
 
@@ -80,15 +80,15 @@ The utilities package provides the following modules:
 
 | Utility | Description | Key Functions | Version |
 |---------|-------------|---------------|---------|
-| **array** | Array manipulation utilities | `distinctValues`, `groupBy`, `sortBy`, `chunk` | 4.1.0 |
-| **constants** | Application constants and enums | `HTTP_STATUS`, `ERROR_CODES`, `AWS_CONFIG` | 4.1.0 |
-| **date** | Date formatting and manipulation | `formatForDisplay`, `addDays`, `daysDifference` | 4.1.0 |
-| **error** | Error handling and classification | `classifyError`, `asyncHandler`, custom error classes | 4.1.0 |
-| **logger** | Structured logging utilities | Configurable logging with levels | 4.1.0 |
-| **middleware** | Express/Lambda middleware | `corsMiddleware`, `validationMiddleware`, `authMiddleware` | 4.1.0 |
-| **response** | HTTP response helpers | `createResponse`, `createErrorResponse`, CORS headers | 4.1.0 |
-| **text** | Text processing utilities | String manipulation and formatting | 4.1.0 |
-| **validation** | Input validation helpers | `validateEmail`, `validateUUID`, `sanitizeInput` | 4.1.0 |
+| **array** | Array manipulation utilities | `distinctValues`, `groupBy`, `sortBy`, `chunk` | 4.1.1 |
+| **constants** | Application constants and enums | `HTTP_STATUS`, `ERROR_CODES`, `AWS_CONFIG` | 4.1.1 |
+| **date** | Date formatting and manipulation | `formatForDisplay`, `addDays`, `daysDifference` | 4.1.1 |
+| **error** | Error handling and classification | `classifyError`, `asyncHandler`, custom error classes | 4.1.1 |
+| **logger** | Structured logging utilities | Configurable logging with levels | 4.1.1 |
+| **middleware** | Express/Lambda middleware | `corsMiddleware`, `validationMiddleware`, `authMiddleware` | 4.1.1 |
+| **response** | HTTP response helpers | `createResponse`, `createErrorResponse`, CORS headers | 4.1.1 |
+| **text** | Text processing utilities | String manipulation and formatting | 4.1.1 |
+| **validation** | Input validation helpers | `validateEmail`, `validateUUID`, `sanitizeInput` | 4.1.1 |
 
 ## 📦 Installation
 

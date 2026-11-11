@@ -45,7 +45,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          # Full history so we can diff against the commit before the push,
+          # even when a single push contains several commits.
+          fetch-depth: 0
 
       - uses: dorny/paths-filter@v2
         id: changes
@@ -58,7 +60,20 @@ jobs:
 
       - name: Detect individual package changes
         id: individual-changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
         run: |
+          # Diff across the whole push (all commits), not just the last one.
+          # Fall back to HEAD~1 for manual dispatch, new branches, or a missing base.
+          BASE="HEAD~1"
+          if [ "$EVENT_NAME" == "push" ] && [ -n "$BEFORE_SHA" ] \
+             && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ] \
+             && git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null; then
+            BASE="$BEFORE_SHA"
+          fi
+          echo "Diff base: $BASE"
+
           # Handle force publish scenario for manual dispatch
           if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ "${{ github.event.inputs.force_publish }}" == "true" ]; then
             echo "Force publish enabled - including all packages"
@@ -67,7 +82,7 @@ jobs:
           else
             # Detect changed service packages (only files inside a package subdirectory,
             # so aggregate-level files like services/index.js or services/package.json are excluded)
-            SERVICES=$(git diff --name-only HEAD~1 HEAD | grep -E '^services/[^/]+/' | cut -d'/' -f2 | sort -u | while read -r p; do [ -f "services/$p/package.json" ] && echo "$p"; done | tr '\n' ' ')
+            SERVICES=$(git diff --name-only "$BASE" HEAD | grep -E '^services/[^/]+/' | cut -d'/' -f2 | sort -u | while read -r p; do [ -f "services/$p/package.json" ] && echo "$p"; done | tr '\n' ' ')
             if [ -n "$SERVICES" ]; then
               SERVICES_JSON=$(echo "$SERVICES" | sed 's/ *$//' | sed 's/ /","/g' | sed 's/^/["/' | sed 's/$/"]/')
             else
@@ -81,7 +96,7 @@ jobs:
             
             # Detect changed utility packages (only files inside a package subdirectory,
             # so aggregate-level files like utilities/index.js or utilities/package.json are excluded)
-            UTILITIES=$(git diff --name-only HEAD~1 HEAD | grep -E '^utilities/[^/]+/' | cut -d'/' -f2 | sort -u | while read -r p; do [ -f "utilities/$p/package.json" ] && echo "$p"; done | tr '\n' ' ')
+            UTILITIES=$(git diff --name-only "$BASE" HEAD | grep -E '^utilities/[^/]+/' | cut -d'/' -f2 | sort -u | while read -r p; do [ -f "utilities/$p/package.json" ] && echo "$p"; done | tr '\n' ' ')
             if [ -n "$UTILITIES" ]; then
               UTILITIES_JSON=$(echo "$UTILITIES" | sed 's/ *$//' | sed 's/ /","/g' | sed 's/^/["/' | sed 's/$/"]/')
             else
@@ -272,9 +287,15 @@ jobs:
         id: publish
         run: |
           cd services/${{ matrix.service }}
-          echo "Publishing @taleofddh/${{ matrix.service }}"
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          if [ "$(npm view "$NAME@$VERSION" version 2>/dev/null)" == "$VERSION" ]; then
+            echo "⏭️  $NAME@$VERSION is already published - skipping"
+            exit 0
+          fi
+          echo "Publishing $NAME@$VERSION"
           npm publish
-          echo "✅ Successfully published @taleofddh/${{ matrix.service }}"
+          echo "✅ Successfully published $NAME@$VERSION"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -353,9 +374,15 @@ jobs:
         id: publish
         run: |
           cd utilities/${{ matrix.utility }}
-          echo "Publishing @taleofddh/${{ matrix.utility }}"
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          if [ "$(npm view "$NAME@$VERSION" version 2>/dev/null)" == "$VERSION" ]; then
+            echo "⏭️  $NAME@$VERSION is already published - skipping"
+            exit 0
+          fi
+          echo "Publishing $NAME@$VERSION"
           npm publish
-          echo "✅ Successfully published @taleofddh/${{ matrix.utility }}"
+          echo "✅ Successfully published $NAME@$VERSION"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -437,7 +464,12 @@ jobs:
         id: publish
         run: |
           cd services
-          echo "Publishing @taleofddh/services aggregate package"
+          VERSION=$(node -p "require('./package.json').version")
+          if [ "$(npm view "@taleofddh/services@$VERSION" version 2>/dev/null)" == "$VERSION" ]; then
+            echo "⏭️  @taleofddh/services@$VERSION is already published - skipping"
+            exit 0
+          fi
+          echo "Publishing @taleofddh/services@$VERSION aggregate package"
           npm publish
           echo "✅ Successfully published @taleofddh/services aggregate"
         env:
@@ -519,7 +551,12 @@ jobs:
         id: publish
         run: |
           cd utilities
-          echo "Publishing @taleofddh/utilities aggregate package"
+          VERSION=$(node -p "require('./package.json').version")
+          if [ "$(npm view "@taleofddh/utilities@$VERSION" version 2>/dev/null)" == "$VERSION" ]; then
+            echo "⏭️  @taleofddh/utilities@$VERSION is already published - skipping"
+            exit 0
+          fi
+          echo "Publishing @taleofddh/utilities@$VERSION aggregate package"
           npm publish
           echo "✅ Successfully published @taleofddh/utilities aggregate"
         env:
@@ -629,7 +666,12 @@ jobs:
       - name: Publish main package
         id: publish
         run: |
-          echo "Publishing @taleofddh/libraries main package"
+          VERSION=$(node -p "require('./package.json').version")
+          if [ "$(npm view "@taleofddh/libraries@$VERSION" version 2>/dev/null)" == "$VERSION" ]; then
+            echo "⏭️  @taleofddh/libraries@$VERSION is already published - skipping"
+            exit 0
+          fi
+          echo "Publishing @taleofddh/libraries@$VERSION main package"
           npm publish
           echo "✅ Successfully published @taleofddh/libraries main package"
         env:

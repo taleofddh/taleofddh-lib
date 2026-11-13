@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/date",
-  "version": "4.1.1",
+  "version": "5.0.0",
   "description": "Date formatting utilities for Lambda functions",
   "type": "module",
   "main": "index.js",

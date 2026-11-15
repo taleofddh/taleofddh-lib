@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/storage",
-  "version": "5.0.1",
+  "version": "5.1.0",
   "description": "Tale of DDH object storage service wrappers for AWS Lambda",
   "type": "module",
   "main": "index.js",

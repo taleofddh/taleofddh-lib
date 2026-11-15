@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/auth",
-  "version": "5.0.1",
+  "version": "5.1.0",
   "description": "Cognito group-based authorization helper for API Gateway Lambda handlers",
   "type": "module",
   "main": "index.js",

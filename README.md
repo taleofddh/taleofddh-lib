@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D24.0.0-brightgreen.svg)](https://nodejs.org/)
 [![npm Version](https://img.shields.io/badge/npm-%3E%3D11.0.0-blue.svg)](https://www.npmjs.com/)
-[![Version](https://img.shields.io/badge/version-4.1.1-blue.svg)](https://github.com/taleofddh/taleofddh-lib)
+[![Version](https://img.shields.io/badge/version-5.0.1-blue.svg)](https://github.com/taleofddh/taleofddh-lib)
 
 A comprehensive collection of shared libraries providing common services, utilities, and tools for AWS Lambda applications and Node.js projects.
 
@@ -80,8 +80,9 @@ The utilities package provides the following modules:
 
 | Utility | Description | Key Functions | Version |
 |---------|-------------|---------------|---------|
-| **array** | Array manipulation utilities | `distinctValues`, `groupBy`, `sortBy`, `chunk` | 4.1.1 |
-| **constants** | Application constants and enums | `HTTP_STATUS`, `ERROR_CODES`, `AWS_CONFIG` | 4.1.1 |
+| **array** | Array manipulation utilities | `distinctValues`, `groupBy`, `sortBy`, `chunk` | 5.0.1 |
+| **auth** | Cognito group-based authorization helper | `getCaller`, `requireGroup`, `ROLES` | 5.0.1 |
+| **constants** | Application constants and enums | `HTTP_STATUS`, `ERROR_CODES`, `AWS_CONFIG` | 5.0.1 |
 | **date** | Date formatting and manipulation | `formatForDisplay`, `addDays`, `daysDifference` | 4.1.1 |
 | **error** | Error handling and classification | `classifyError`, `asyncHandler`, custom error classes | 4.1.1 |
 | **logger** | Structured logging utilities | Configurable logging with levels | 4.1.1 |
@@ -215,6 +216,45 @@ export const handler = corsMiddleware(
 );
 ```
 
+### Authorization (Cognito groups)
+
+`@taleofddh/auth` provides one shared way to check the caller's business role
+from the Cognito claims that the API Gateway user pool authorizer has already
+verified. Identity and roles are read only from
+`event.requestContext.authorizer.claims` — never from the request body or
+headers.
+
+```javascript
+import { requireGroup, ROLES } from '@taleofddh/auth';
+import { createResponse } from '@taleofddh/response';
+import { classifyError } from '@taleofddh/error';
+
+export const handler = async (event) => {
+  try {
+    // Throws ForbiddenError (403) unless the caller is a blog-manager or admin;
+    // throws UnauthorizedError (401) when authorizer claims are missing.
+    const caller = requireGroup(event, ROLES.BLOG_MANAGER);
+
+    return createResponse(200, { message: 'Blog created', user: caller.email });
+  } catch (error) {
+    // classifyError maps UnauthorizedError -> 401 and ForbiddenError -> 403
+    return createResponse(error.statusCode || 500, classifyError(error));
+  }
+};
+```
+
+`requireGroup(event, ...groups)` passes when the caller is in any of the given
+`groups` or holds the `admin` role (which implies every manager role). Use
+`getCaller(event)` directly when you only need the caller's identity and groups
+without enforcing a specific role.
+
+```javascript
+import { getCaller, ROLES } from '@taleofddh/auth';
+
+const { sub, email, groups } = getCaller(event);
+const isAdmin = groups.includes(ROLES.ADMIN);
+```
+
 ## 📚 API Reference
 
 ### Response Utilities
@@ -261,6 +301,33 @@ ValidationError(message, details?)
 classifyError(error)
 asyncHandler(fn) // Wraps async functions for error handling
 ```
+
+### Authorization (Cognito groups)
+
+```javascript
+import { getCaller, requireGroup, ROLES } from '@taleofddh/auth';
+
+// Roles (Cognito user pool groups)
+ROLES.ADMIN           // 'admin' — full access, implies every manager role
+ROLES.GALLERY_MANAGER // 'gallery-manager'
+ROLES.BLOG_MANAGER    // 'blog-manager'
+
+// Read the verified caller's identity and roles from authorizer claims
+getCaller(event) // -> { sub, email, groups }
+                  // throws UnauthorizedError (401) when claims are missing
+
+// Enforce a business role (admin always passes)
+requireGroup(event, ROLES.BLOG_MANAGER)        // -> caller
+requireGroup(event, ROLES.BLOG_MANAGER, ROLES.GALLERY_MANAGER)
+// throws UnauthorizedError (401) when claims are missing
+// throws ForbiddenError (403) when the caller holds none of the required roles
+```
+
+The `cognito:groups` claim is parsed safely whether it is missing, an array
+(`['admin', 'blog-manager']`), a comma-separated string (`'admin,blog-manager'`),
+or a bracketed space-separated string (`'[admin blog-manager]'`). The thrown
+`UnauthorizedError` and `ForbiddenError` carry the `name` and `statusCode` that
+`@taleofddh/error`'s `classifyError` maps to 401 and 403.
 
 ## 🔧 Development
 

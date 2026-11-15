@@ -47,6 +47,11 @@ package-lock.json
 # Kiro IDE files
 .kiro/
 
+# Test files (kept local, not committed)
+*.test.js
+*.spec.js
+__tests__/
+
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
 

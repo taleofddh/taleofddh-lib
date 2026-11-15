@@ -1,0 +1,29 @@
+{
+  "name": "@taleofddh/auth",
+  "version": "5.0.1",
+  "description": "Cognito group-based authorization helper for API Gateway Lambda handlers",
+  "type": "module",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/taleofddh/taleofddh-lib.git"
+  },
+  "keywords": [
+    "aws",
+    "lambda",
+    "auth",
+    "cognito",
+    "authorization",
+    "rbac",
+    "roles"
+  ],
+  "dependencies": {},
+  "devDependencies": {},
+  "engines": {
+    "node": ">=24.0.0",
+    "npm": ">=11.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  }
+}

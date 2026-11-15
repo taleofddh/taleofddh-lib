@@ -11,6 +11,7 @@ export * as error from '@taleofddh/error';
 export * as logger from '@taleofddh/logger';
 export * as middleware from '@taleofddh/middleware';
 export * as constants from '@taleofddh/constants';
+export * as auth from '@taleofddh/auth';
 export * as text from '@taleofddh/text';
 export * as validation from '@taleofddh/validation';
 
@@ -148,3 +149,13 @@ export {
   validatePagination,
   PATTERNS as VALIDATION_PATTERNS
 } from '@taleofddh/validation';
+
+// Auth (Cognito group-based authorization helper)
+// NOTE: UnauthorizedError/ForbiddenError are re-exported above from @taleofddh/error;
+// @taleofddh/auth throws classes with the same name/statusCode so they integrate.
+export {
+  getCaller,
+  requireGroup,
+  ROLES,
+  parseGroups
+} from '@taleofddh/auth';

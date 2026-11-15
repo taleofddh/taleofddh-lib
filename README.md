@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D24.0.0-brightgreen.svg)](https://nodejs.org/)
 [![npm Version](https://img.shields.io/badge/npm-%3E%3D11.0.0-blue.svg)](https://www.npmjs.com/)
-[![Version](https://img.shields.io/badge/version-5.1.0-blue.svg)](https://github.com/taleofddh/taleofddh-lib)
+[![Version](https://img.shields.io/badge/version-5.2.0-blue.svg)](https://github.com/taleofddh/taleofddh-lib)
 
 A comprehensive collection of shared libraries providing common services, utilities, and tools for AWS Lambda applications and Node.js projects.
 
@@ -57,22 +57,22 @@ The services package includes the following modules:
 
 | Service | Description | Version |
 |---------|-------------|---------|
-| **channel** | Communication channel management | 5.1.0 |
-| **crypto** | Cryptographic operations and utilities | 5.1.0 |
-| **database** | Database connection and query utilities | 5.1.0 |
-| **distribution** | Content distribution and delivery services | 5.1.0 |
-| **drive** | Google Drive integration | 5.1.0 |
-| **email** | Email service integration and utilities | 5.1.0 |
-| **gmail** | Gmail API wrapper | 5.1.0 |
-| **identity** | Identity and authentication services | 5.1.0 |
-| **message** | Message processing and handling | 5.1.0 |
-| **notification** | Push notification services | 5.1.0 |
-| **secret** | AWS Secrets Manager integration | 5.1.0 |
-| **storage** | AWS S3 and storage utilities | 5.1.0 |
-| **tickettailor** | TicketTailor API integration | 5.1.0 |
-| **turnstile** | Cloudflare Turnstile captcha token verification | 5.1.0 |
-| **whatsapp** | WhatsApp Business API wrapper | 5.1.0 |
-| **workbook** | Excel/spreadsheet processing | 5.1.0 |
+| **channel** | Communication channel management | 5.2.0 |
+| **crypto** | Cryptographic operations and utilities | 5.2.0 |
+| **database** | Database connection and query utilities | 5.2.0 |
+| **distribution** | Content distribution and delivery services | 5.2.0 |
+| **drive** | Google Drive integration | 5.2.0 |
+| **email** | Email service integration and utilities | 5.2.0 |
+| **gmail** | Gmail API wrapper | 5.2.0 |
+| **identity** | Identity and authentication services | 5.2.0 |
+| **message** | Message processing and handling | 5.2.0 |
+| **notification** | Push notification services | 5.2.0 |
+| **secret** | AWS Secrets Manager integration | 5.2.0 |
+| **storage** | AWS S3 and storage utilities | 5.2.0 |
+| **tickettailor** | TicketTailor API integration | 5.2.0 |
+| **turnstile** | Cloudflare Turnstile captcha token verification | 5.2.0 |
+| **whatsapp** | WhatsApp Business API wrapper | 5.2.0 |
+| **workbook** | Excel/spreadsheet processing | 5.2.0 |
 
 ## 🛠️ Utilities
 
@@ -80,16 +80,16 @@ The utilities package provides the following modules:
 
 | Utility | Description | Key Functions | Version |
 |---------|-------------|---------------|---------|
-| **array** | Array manipulation utilities | `distinctValues`, `groupBy`, `sortBy`, `chunk` | 5.1.0 |
-| **auth** | Cognito group-based authorization helper | `getCaller`, `requireGroup`, `ROLES` | 5.1.0 |
-| **constants** | Application constants and enums | `HTTP_STATUS`, `ERROR_CODES`, `AWS_CONFIG` | 5.1.0 |
-| **date** | Date formatting and manipulation | `formatForDisplay`, `addDays`, `daysDifference` | 5.1.0 |
-| **error** | Error handling and classification | `classifyError`, `asyncHandler`, custom error classes | 5.1.0 |
-| **logger** | Structured logging utilities | Configurable logging with levels | 5.1.0 |
-| **middleware** | Express/Lambda middleware | `corsMiddleware`, `validationMiddleware`, `authMiddleware` | 5.1.0 |
-| **response** | HTTP response helpers | `createResponse`, `createErrorResponse`, CORS headers | 5.1.0 |
-| **text** | Text processing utilities | String manipulation and formatting | 5.1.0 |
-| **validation** | Input validation helpers | `validateEmail`, `validateUUID`, `sanitizeInput` | 5.1.0 |
+| **array** | Array manipulation utilities | `distinctValues`, `groupBy`, `sortBy`, `chunk` | 5.2.0 |
+| **auth** | Permission check from Cognito groups and a role-permissions table | `getCaller`, `requirePermission` | 5.2.0 |
+| **constants** | Application constants and enums | `HTTP_STATUS`, `ERROR_CODES`, `AWS_CONFIG` | 5.2.0 |
+| **date** | Date formatting and manipulation | `formatForDisplay`, `addDays`, `daysDifference` | 5.2.0 |
+| **error** | Error handling and classification | `classifyError`, `asyncHandler`, custom error classes | 5.2.0 |
+| **logger** | Structured logging utilities | Configurable logging with levels | 5.2.0 |
+| **middleware** | Express/Lambda middleware | `corsMiddleware`, `validationMiddleware`, `authMiddleware` | 5.2.0 |
+| **response** | HTTP response helpers | `createResponse`, `createErrorResponse`, CORS headers | 5.2.0 |
+| **text** | Text processing utilities | String manipulation and formatting | 5.2.0 |
+| **validation** | Input validation helpers | `validateEmail`, `validateUUID`, `sanitizeInput` | 5.2.0 |
 
 ## 📦 Installation
 
@@ -216,44 +216,50 @@ export const handler = corsMiddleware(
 );
 ```
 
-### Authorization (Cognito groups)
+### Authorization (permissions)
 
-`@taleofddh/auth` provides one shared way to check the caller's business role
-from the Cognito claims that the API Gateway user pool authorizer has already
-verified. Identity and roles are read only from
-`event.requestContext.authorizer.claims` — never from the request body or
-headers.
+`@taleofddh/auth` gives every service one way to check whether the signed-in
+caller may perform an action. The library contains no role or permission names:
+
+- **Roles** are Cognito user pool groups (the `cognito:groups` claim).
+- **Role → permissions** is business data in a DynamoDB table, one item per role:
+  `{ "role": "blog-manager", "permissions": ["blog:create", "blog:edit"] }`.
+  The permission `"*"` grants everything, e.g. `{ "role": "admin", "permissions": ["*"] }`.
+- **Permission names** are chosen by the feature code that checks them.
+
+Adding a role or changing its permissions is a table edit, not a library change.
+
+Identity and groups are read only from `event.requestContext.authorizer.claims`
+(already verified by the API Gateway Cognito user pool authorizer), never from
+the request body or headers.
+
+| Environment variable | Required | Meaning |
+|---|---|---|
+| `ROLE_PERMISSIONS_TABLE` | yes | Name of the role-permissions table (partition key `role`) |
+| `ROLE_PERMISSIONS_CACHE_TTL_SECONDS` | no | How long the table is cached (default `300`) |
+| `REGION` | no | DynamoDB region (default `eu-west-1`) |
+
+The Lambda role needs `dynamodb:Scan` on the table.
 
 ```javascript
-import { requireGroup, ROLES } from '@taleofddh/auth';
+import { requirePermission } from '@taleofddh/auth';
 import { createResponse } from '@taleofddh/response';
 import { classifyError } from '@taleofddh/error';
 
 export const handler = async (event) => {
   try {
-    // Throws ForbiddenError (403) unless the caller is a blog-manager or admin;
-    // throws UnauthorizedError (401) when authorizer claims are missing.
-    const caller = requireGroup(event, ROLES.BLOG_MANAGER);
+    // 401 when not signed in, 403 when no group grants the permission
+    const caller = await requirePermission(event, 'blog:create');
 
-    return createResponse(200, { message: 'Blog created', user: caller.email });
+    return createResponse({ message: 'Blog created', user: caller.email }, 201);
   } catch (error) {
-    // classifyError maps UnauthorizedError -> 401 and ForbiddenError -> 403
-    return createResponse(error.statusCode || 500, classifyError(error));
+    const body = classifyError(error); // 401 / 403; table or config failure -> 500
+    return createResponse(body, body.statusCode);
   }
 };
 ```
 
-`requireGroup(event, ...groups)` passes when the caller is in any of the given
-`groups` or holds the `admin` role (which implies every manager role). Use
-`getCaller(event)` directly when you only need the caller's identity and groups
-without enforcing a specific role.
-
-```javascript
-import { getCaller, ROLES } from '@taleofddh/auth';
-
-const { sub, email, groups } = getCaller(event);
-const isAdmin = groups.includes(ROLES.ADMIN);
-```
+Use `getCaller(event)` when you only need the caller's identity and groups.
 
 ## 📚 API Reference
 
@@ -302,32 +308,29 @@ classifyError(error)
 asyncHandler(fn) // Wraps async functions for error handling
 ```
 
-### Authorization (Cognito groups)
+### Authorization (permissions)
 
 ```javascript
-import { getCaller, requireGroup, ROLES } from '@taleofddh/auth';
+import { getCaller, requirePermission, clearPermissionsCache } from '@taleofddh/auth';
 
-// Roles (Cognito user pool groups)
-ROLES.ADMIN           // 'admin' — full access, implies every manager role
-ROLES.GALLERY_MANAGER // 'gallery-manager'
-ROLES.BLOG_MANAGER    // 'blog-manager'
-
-// Read the verified caller's identity and roles from authorizer claims
+// Verified caller from authorizer claims
 getCaller(event) // -> { sub, email, groups }
-                  // throws UnauthorizedError (401) when claims are missing
+                 // throws UnauthorizedError (401) when there is no signed-in caller
 
-// Enforce a business role (admin always passes)
-requireGroup(event, ROLES.BLOG_MANAGER)        // -> caller
-requireGroup(event, ROLES.BLOG_MANAGER, ROLES.GALLERY_MANAGER)
-// throws UnauthorizedError (401) when claims are missing
-// throws ForbiddenError (403) when the caller holds none of the required roles
+// Allow if any of the caller's groups grants the permission (or "*")
+await requirePermission(event, 'gallery:edit') // -> caller
+// throws UnauthorizedError (401) when there is no signed-in caller
+// throws ForbiddenError (403) when no group grants the permission
+// rejects with PermissionsUnavailableError (500) when the table can't be read
+// (missing ROLE_PERMISSIONS_TABLE or any DynamoDB error; original error in `cause`)
+
+clearPermissionsCache() // force the next check to reload the table
 ```
 
-The `cognito:groups` claim is parsed safely whether it is missing, an array
-(`['admin', 'blog-manager']`), a comma-separated string (`'admin,blog-manager'`),
-or a bracketed space-separated string (`'[admin blog-manager]'`). The thrown
-`UnauthorizedError` and `ForbiddenError` carry the `name` and `statusCode` that
-`@taleofddh/error`'s `classifyError` maps to 401 and 403.
+Groups not in the table (for example Cognito's automatic `*_Google` groups) are
+ignored. The `cognito:groups` claim is parsed whether it is missing, an array,
+`'a,b'`, or `'[a b]'`. `UnauthorizedError` and `ForbiddenError` carry the `name`
+and `statusCode` that `@taleofddh/error`'s `classifyError` maps to 401 and 403.
 
 ## 🔧 Development
 

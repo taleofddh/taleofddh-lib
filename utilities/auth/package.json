@@ -1,7 +1,7 @@
 {
   "name": "@taleofddh/auth",
-  "version": "5.1.0",
-  "description": "Cognito group-based authorization helper for API Gateway Lambda handlers",
+  "version": "5.2.0",
+  "description": "Generic permission check for API Gateway Lambda handlers (Cognito groups + role-permissions table)",
   "type": "module",
   "main": "index.js",
   "repository": {
@@ -14,11 +14,14 @@
     "auth",
     "cognito",
     "authorization",
-    "rbac",
-    "roles"
+    "permissions",
+    "dynamodb"
   ],
   "dependencies": {},
-  "devDependencies": {},
+  "devDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.1166.0",
+    "@aws-sdk/lib-dynamodb": "^3.1166.0"
+  },
   "engines": {
     "node": ">=24.0.0",
     "npm": ">=11.0.0"

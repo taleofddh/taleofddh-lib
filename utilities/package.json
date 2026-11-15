@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/utilities",
-  "version": "5.1.0",
+  "version": "5.2.0",
   "description": "Aggregate package for all utility libraries",
   "type": "module",
   "main": "index.js",
@@ -18,16 +18,16 @@
     "aggregate"
   ],
   "dependencies": {
-    "@taleofddh/response": "^5.1.0",
-    "@taleofddh/date": "^5.1.0",
-    "@taleofddh/array": "^5.1.0",
-    "@taleofddh/error": "^5.1.0",
-    "@taleofddh/logger": "^5.1.0",
-    "@taleofddh/middleware": "^5.1.0",
-    "@taleofddh/constants": "^5.1.0",
-    "@taleofddh/auth": "^5.1.0",
-    "@taleofddh/text": "^5.1.0",
-    "@taleofddh/validation": "^5.1.0"
+    "@taleofddh/response": "^5.2.0",
+    "@taleofddh/date": "^5.2.0",
+    "@taleofddh/array": "^5.2.0",
+    "@taleofddh/error": "^5.2.0",
+    "@taleofddh/logger": "^5.2.0",
+    "@taleofddh/middleware": "^5.2.0",
+    "@taleofddh/constants": "^5.2.0",
+    "@taleofddh/auth": "^5.2.0",
+    "@taleofddh/text": "^5.2.0",
+    "@taleofddh/validation": "^5.2.0"
   },
   "devDependencies": {
     "jest": "^30.3.0"

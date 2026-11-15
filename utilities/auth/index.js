@@ -1,32 +1,33 @@
 /**
- * Cognito group-based authorization helper for API Gateway Lambda handlers.
+ * Generic permission check for API Gateway Lambda handlers.
  *
  * The API Gateway Cognito user pool authorizer verifies the JWT before the
  * request reaches the handler, so the claims in
- * `event.requestContext.authorizer.claims` are trusted. This module reads
- * caller identity and business roles ONLY from those claims — never from the
- * request body or headers — and enforces roles consistently across admin
- * endpoints via `requireGroup`.
+ * `event.requestContext.authorizer.claims` are trusted. Identity and roles are
+ * read ONLY from those claims, never from the request body or headers.
+ *
+ * This module contains no role names and no permission names:
+ *   - Roles are Cognito user pool groups (`cognito:groups` claim).
+ *   - Role -> permissions is business data in a DynamoDB table whose name comes
+ *     from the `ROLE_PERMISSIONS_TABLE` environment variable. Each item is
+ *     `{ role: string, permissions: string[] | Set<string> }`; the permission
+ *     `*` grants every permission.
+ *   - Permission names are supplied by the feature code that checks them.
+ *
+ * Environment variables:
+ *   - ROLE_PERMISSIONS_TABLE (required for requirePermission): table name
+ *   - ROLE_PERMISSIONS_CACHE_TTL_SECONDS (optional, default 300): cache lifetime
+ *   - REGION (optional, default eu-west-1): DynamoDB region
  *
  * The thrown `UnauthorizedError` (401) and `ForbiddenError` (403) carry the
- * same `name` and `statusCode` the existing `@taleofddh/error` ErrorHandler
- * dispatches on, so they map to the correct HTTP status when handled there.
+ * `name` and `statusCode` that `@taleofddh/error` maps to 401 and 403. If the
+ * table can't be read (missing configuration or any DynamoDB error), access is
+ * denied with `PermissionsUnavailableError`, which the error helper maps to 500.
  */
 
-/**
- * Cognito user pool group names (business roles).
- * `admin` implies every manager role.
- */
-export const ROLES = Object.freeze({
-  ADMIN: 'admin',
-  GALLERY_MANAGER: 'gallery-manager',
-  BLOG_MANAGER: 'blog-manager'
-});
+const WILDCARD = '*';
+const DEFAULT_CACHE_TTL_SECONDS = 300;
 
-/**
- * Base class for authorization errors. Carries an HTTP `statusCode` and a
- * `name` that the existing error helper switches on.
- */
 class AuthError extends Error {
   constructor(name, statusCode, message, details = null) {
     super(message);
@@ -49,64 +50,41 @@ export class ForbiddenError extends AuthError {
 }
 
 /**
- * Parse the `cognito:groups` claim into a trimmed list of group names.
- *
- * API Gateway may deliver the claim as:
- *   - an array: `['admin', 'blog-manager']`
- *   - a comma-separated string: `'admin,blog-manager'`
- *   - a bracketed, space-separated string: `'[admin blog-manager]'`
- *   - missing entirely
+ * Parse the `cognito:groups` claim into a list of group names.
+ * API Gateway may deliver it as an array, `"a,b"`, `"[a b]"`, or omit it.
  *
  * @param {*} raw - raw value of the `cognito:groups` claim
  * @returns {string[]} group names (empty when the claim is absent)
  */
 export function parseGroups(raw) {
   if (Array.isArray(raw)) {
-    return raw
-      .map((g) => (typeof g === 'string' ? g.trim() : String(g).trim()))
-      .filter((g) => g.length > 0);
+    return raw.map((g) => String(g).trim()).filter((g) => g.length > 0);
   }
-
   if (typeof raw !== 'string') {
     return [];
   }
-
   let value = raw.trim();
-
-  // Strip a single pair of surrounding brackets, e.g. "[a b]" -> "a b"
   if (value.startsWith('[') && value.endsWith(']')) {
-    value = value.slice(1, -1).trim();
+    value = value.slice(1, -1);
   }
-
-  if (value.length === 0) {
-    return [];
-  }
-
-  // Treat commas and whitespace as equivalent separators ("a,b" or "a b")
   return value
-    .replace(/,/g, ' ')
-    .split(/\s+/)
-    .map((p) => p.trim())
-    .filter((p) => p.length > 0);
+    .split(/[\s,]+/)
+    .map((g) => g.trim())
+    .filter((g) => g.length > 0);
 }
 
 /**
- * Extract the caller's identity and roles from verified authorizer claims.
- *
- * Reads ONLY from `event.requestContext.authorizer.claims`. Identity or roles
- * present in the request body or headers are never consulted.
+ * Extract the caller's identity and groups from verified authorizer claims.
  *
  * @param {Object} event - API Gateway Lambda proxy event
  * @returns {{ sub: string|undefined, email: string|undefined, groups: string[] }}
- * @throws {UnauthorizedError} (401) when authorizer claims are missing
+ * @throws {UnauthorizedError} (401) when there is no signed-in caller
  */
 export function getCaller(event) {
   const claims = event?.requestContext?.authorizer?.claims;
-
-  if (!claims || typeof claims !== 'object') {
+  if (!claims || typeof claims !== 'object' || !claims.sub) {
     throw new UnauthorizedError('Missing authorizer claims');
   }
-
   return {
     sub: claims.sub,
     email: claims.email,
@@ -114,43 +92,167 @@ export function getCaller(event) {
   };
 }
 
-/**
- * Require the caller to hold one of the given business roles (or be `admin`).
- *
- * `admin` implies every manager role, so an admin always passes. Authentication
- * is checked first: a request without authorizer claims throws
- * `UnauthorizedError` (401) before any role is evaluated.
- *
- * @param {Object} event - API Gateway Lambda proxy event
- * @param {...string} groups - one or more `ROLES` that are permitted
- * @returns {{ sub: string|undefined, email: string|undefined, groups: string[] }} the caller
- * @throws {UnauthorizedError} (401) when authorizer claims are missing
- * @throws {ForbiddenError} (403) when the caller holds none of the required roles
- */
-export function requireGroup(event, ...groups) {
-  const caller = getCaller(event);
-
-  // `admin` implies every manager role.
-  if (caller.groups.includes(ROLES.ADMIN)) {
-    return caller;
+function toPermissionList(value) {
+  if (Array.isArray(value) || value instanceof Set) {
+    return [...value].filter((p) => typeof p === 'string' && p.length > 0);
   }
-
-  const requested = groups.map((g) => String(g));
-
-  if (requested.length > 0 && requested.some((g) => caller.groups.includes(g))) {
-    return caller;
-  }
-
-  throw new ForbiddenError(
-    'Insufficient permissions: required role not granted',
-    { required: requested, groups: caller.groups }
-  );
+  return [];
 }
 
+/**
+ * Build a permission checker around a role-permissions loader. Used by the
+ * default `requirePermission`; also useful to plug in a different data source.
+ *
+ * @param {Object} options
+ * @param {() => Promise<Map<string, string[]>>} options.loadRolePermissions -
+ *   returns a map of role name -> permissions
+ * @param {number} [options.cacheTtlMs] - cache lifetime in ms (default 5 minutes)
+ * @param {() => number} [options.now] - clock, defaults to Date.now
+ * @returns {{ requirePermission: Function, clearCache: Function }}
+ */
+export function createPermissionChecker({
+  loadRolePermissions,
+  cacheTtlMs = DEFAULT_CACHE_TTL_SECONDS * 1000,
+  now = Date.now
+}) {
+  if (typeof loadRolePermissions !== 'function') {
+    throw new TypeError('loadRolePermissions must be a function');
+  }
+
+  let cache = null; // { rolePermissions: Map, expiresAt: number }
+  let inFlight = null;
+
+  async function getRolePermissions() {
+    const ttl = typeof cacheTtlMs === 'function' ? cacheTtlMs() : cacheTtlMs;
+    if (cache && now() < cache.expiresAt) {
+      return cache.rolePermissions;
+    }
+    if (!inFlight) {
+      inFlight = (async () => {
+        try {
+          const rolePermissions = await loadRolePermissions();
+          cache = { rolePermissions, expiresAt: now() + ttl };
+          return rolePermissions;
+        } catch (cause) {
+          // Deny with 500 whatever the underlying error. DynamoDB errors such as
+          // AccessDeniedException or ThrottlingException would otherwise map to
+          // 403 / 503 in the error helper.
+          const error = new Error('Role permissions are unavailable', { cause });
+          error.name = 'PermissionsUnavailableError';
+          error.statusCode = 500;
+          throw error;
+        } finally {
+          inFlight = null;
+        }
+      })();
+    }
+    return inFlight;
+  }
+
+  /**
+   * Allow the request if any of the caller's groups grants `permission` or `*`.
+   *
+   * @param {Object} event - API Gateway Lambda proxy event
+   * @param {string} permission - permission name defined by the feature code
+   * @returns {Promise<{ sub, email, groups }>} the caller
+   * @throws {UnauthorizedError} (401) when there is no signed-in caller
+   * @throws {ForbiddenError} (403) when no group grants the permission
+   */
+  async function requirePermission(event, permission) {
+    if (typeof permission !== 'string' || permission.length === 0) {
+      throw new TypeError('permission must be a non-empty string');
+    }
+    const caller = getCaller(event);
+    if (caller.groups.length > 0) {
+      const rolePermissions = await getRolePermissions();
+      // Groups not in the table (e.g. Cognito's automatic *_Google groups) are ignored.
+      const allowed = caller.groups.some((group) => {
+        const granted = rolePermissions.get(group);
+        return granted !== undefined && (granted.includes(permission) || granted.includes(WILDCARD));
+      });
+      if (allowed) {
+        return caller;
+      }
+    }
+    throw new ForbiddenError('Insufficient permissions', { permission });
+  }
+
+  function clearCache() {
+    cache = null;
+  }
+
+  return { requirePermission, clearCache };
+}
+
+let docClient = null;
+
+async function getDocClient() {
+  if (!docClient) {
+    const { DynamoDBClient } = await import('@aws-sdk/client-dynamodb');
+    const { DynamoDBDocumentClient } = await import('@aws-sdk/lib-dynamodb');
+    docClient = DynamoDBDocumentClient.from(
+      new DynamoDBClient({ region: process.env['REGION'] || 'eu-west-1' })
+    );
+  }
+  return docClient;
+}
+
+/**
+ * Read the whole role-permissions table named by ROLE_PERMISSIONS_TABLE.
+ * @returns {Promise<Map<string, string[]>>}
+ */
+export async function loadRolePermissionsFromTable() {
+  const tableName = process.env['ROLE_PERMISSIONS_TABLE'];
+  if (!tableName) {
+    const error = new Error('ROLE_PERMISSIONS_TABLE environment variable is not set');
+    error.name = 'ConfigurationError';
+    throw error;
+  }
+  const client = await getDocClient();
+  const { ScanCommand } = await import('@aws-sdk/lib-dynamodb');
+  const rolePermissions = new Map();
+  let ExclusiveStartKey;
+  do {
+    const result = await client.send(new ScanCommand({ TableName: tableName, ExclusiveStartKey }));
+    for (const item of result.Items || []) {
+      if (typeof item.role === 'string' && item.role.length > 0) {
+        rolePermissions.set(item.role, toPermissionList(item.permissions));
+      }
+    }
+    ExclusiveStartKey = result.LastEvaluatedKey;
+  } while (ExclusiveStartKey);
+  return rolePermissions;
+}
+
+function cacheTtlFromEnv() {
+  const seconds = Number(process.env['ROLE_PERMISSIONS_CACHE_TTL_SECONDS']);
+  return (Number.isFinite(seconds) && seconds >= 0 ? seconds : DEFAULT_CACHE_TTL_SECONDS) * 1000;
+}
+
+const defaultChecker = createPermissionChecker({
+  loadRolePermissions: loadRolePermissionsFromTable,
+  cacheTtlMs: cacheTtlFromEnv
+});
+
+/**
+ * Check that the signed-in caller may perform `permission`, using the
+ * role-permissions table named by ROLE_PERMISSIONS_TABLE (cached, default 5 minutes).
+ *
+ * @param {Object} event - API Gateway Lambda proxy event
+ * @param {string} permission - permission name defined by the feature code
+ * @returns {Promise<{ sub, email, groups }>} the caller
+ */
+export const requirePermission = (event, permission) => defaultChecker.requirePermission(event, permission);
+
+/** Drop the cached role-permissions table so the next check reloads it. */
+export const clearPermissionsCache = () => defaultChecker.clearCache();
+
 export default {
-  ROLES,
   getCaller,
-  requireGroup,
+  requirePermission,
+  clearPermissionsCache,
+  createPermissionChecker,
+  loadRolePermissionsFromTable,
   parseGroups,
   UnauthorizedError,
   ForbiddenError

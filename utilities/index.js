@@ -150,12 +150,13 @@ export {
   PATTERNS as VALIDATION_PATTERNS
 } from '@taleofddh/validation';
 
-// Auth (Cognito group-based authorization helper)
+// Auth (generic permission check backed by Cognito groups and a role-permissions table)
 // NOTE: UnauthorizedError/ForbiddenError are re-exported above from @taleofddh/error;
 // @taleofddh/auth throws classes with the same name/statusCode so they integrate.
 export {
   getCaller,
-  requireGroup,
-  ROLES,
+  requirePermission,
+  clearPermissionsCache,
+  createPermissionChecker,
   parseGroups
 } from '@taleofddh/auth';

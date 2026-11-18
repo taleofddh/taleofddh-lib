@@ -1,0 +1,28 @@
+{
+  "name": "@taleofddh/genai",
+  "version": "6.0.0",
+  "description": "Tale of DDH generative AI (Amazon Bedrock) service wrappers for AWS Lambda",
+  "type": "module",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/taleofddh/taleofddh-lib.git"
+  },
+  "keywords": [
+    "aws",
+    "lambda",
+    "genai",
+    "bedrock",
+    "converse"
+  ],
+  "devDependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1171.0"
+  },
+  "engines": {
+    "node": ">=24.0.0",
+    "npm": ">=11.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  }
+}

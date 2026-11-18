@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D24.0.0-brightgreen.svg)](https://nodejs.org/)
 [![npm Version](https://img.shields.io/badge/npm-%3E%3D11.0.0-blue.svg)](https://www.npmjs.com/)
-[![Version](https://img.shields.io/badge/version-5.2.0-blue.svg)](https://github.com/taleofddh/taleofddh-lib)
+[![Version](https://img.shields.io/badge/version-6.0.0-blue.svg)](https://github.com/taleofddh/taleofddh-lib)
 
 A comprehensive collection of shared libraries providing common services, utilities, and tools for AWS Lambda applications and Node.js projects.
 
@@ -57,22 +57,24 @@ The services package includes the following modules:
 
 | Service | Description | Version |
 |---------|-------------|---------|
-| **channel** | Communication channel management | 5.2.0 |
-| **crypto** | Cryptographic operations and utilities | 5.2.0 |
-| **database** | Database connection and query utilities | 5.2.0 |
-| **distribution** | Content distribution and delivery services | 5.2.0 |
-| **drive** | Google Drive integration | 5.2.0 |
-| **email** | Email service integration and utilities | 5.2.0 |
-| **gmail** | Gmail API wrapper | 5.2.0 |
-| **identity** | Identity and authentication services | 5.2.0 |
-| **message** | Message processing and handling | 5.2.0 |
-| **notification** | Push notification services | 5.2.0 |
-| **secret** | AWS Secrets Manager integration | 5.2.0 |
-| **storage** | AWS S3 and storage utilities | 5.2.0 |
-| **tickettailor** | TicketTailor API integration | 5.2.0 |
-| **turnstile** | Cloudflare Turnstile captcha token verification | 5.2.0 |
-| **whatsapp** | WhatsApp Business API wrapper | 5.2.0 |
-| **workbook** | Excel/spreadsheet processing | 5.2.0 |
+| **agent** | Amazon Bedrock AgentCore runtime invocation | 6.0.0 |
+| **channel** | Communication channel management | 6.0.0 |
+| **crypto** | Cryptographic operations and utilities | 6.0.0 |
+| **database** | Database connection and query utilities | 6.0.0 |
+| **distribution** | Content distribution and delivery services | 6.0.0 |
+| **drive** | Google Drive integration | 6.0.0 |
+| **email** | Email service integration and utilities | 6.0.0 |
+| **genai** | Amazon Bedrock model calls (Converse) | 6.0.0 |
+| **gmail** | Gmail API wrapper | 6.0.0 |
+| **identity** | Identity and authentication services | 6.0.0 |
+| **message** | Message processing and handling | 6.0.0 |
+| **notification** | Push notification services | 6.0.0 |
+| **secret** | AWS Secrets Manager integration | 6.0.0 |
+| **storage** | AWS S3 and storage utilities | 6.0.0 |
+| **tickettailor** | TicketTailor API integration | 6.0.0 |
+| **turnstile** | Cloudflare Turnstile captcha token verification | 6.0.0 |
+| **whatsapp** | WhatsApp Business API wrapper | 6.0.0 |
+| **workbook** | Excel/spreadsheet processing | 6.0.0 |
 
 ## 🛠️ Utilities
 
@@ -80,16 +82,16 @@ The utilities package provides the following modules:
 
 | Utility | Description | Key Functions | Version |
 |---------|-------------|---------------|---------|
-| **array** | Array manipulation utilities | `distinctValues`, `groupBy`, `sortBy`, `chunk` | 5.2.0 |
-| **auth** | Permission check from Cognito groups and a role-permissions table | `getCaller`, `requirePermission` | 5.2.0 |
-| **constants** | Application constants and enums | `HTTP_STATUS`, `ERROR_CODES`, `AWS_CONFIG` | 5.2.0 |
-| **date** | Date formatting and manipulation | `formatForDisplay`, `addDays`, `daysDifference` | 5.2.0 |
-| **error** | Error handling and classification | `classifyError`, `asyncHandler`, custom error classes | 5.2.0 |
-| **logger** | Structured logging utilities | Configurable logging with levels | 5.2.0 |
-| **middleware** | Express/Lambda middleware | `corsMiddleware`, `validationMiddleware`, `authMiddleware` | 5.2.0 |
-| **response** | HTTP response helpers | `createResponse`, `createErrorResponse`, CORS headers | 5.2.0 |
-| **text** | Text processing utilities | String manipulation and formatting | 5.2.0 |
-| **validation** | Input validation helpers | `validateEmail`, `validateUUID`, `sanitizeInput` | 5.2.0 |
+| **array** | Array manipulation utilities | `distinctValues`, `groupBy`, `sortBy`, `chunk` | 6.0.0 |
+| **auth** | Permission check from Cognito groups and a role-permissions table | `getCaller`, `requirePermission` | 6.0.0 |
+| **constants** | Application constants and enums | `HTTP_STATUS`, `ERROR_CODES`, `AWS_CONFIG` | 6.0.0 |
+| **date** | Date formatting and manipulation | `formatForDisplay`, `addDays`, `daysDifference` | 6.0.0 |
+| **error** | Error handling and classification | `classifyError`, `asyncHandler`, custom error classes | 6.0.0 |
+| **logger** | Structured logging utilities | Configurable logging with levels | 6.0.0 |
+| **middleware** | Express/Lambda middleware | `corsMiddleware`, `validationMiddleware`, `authMiddleware` | 6.0.0 |
+| **response** | HTTP response helpers | `createResponse`, `createErrorResponse`, CORS headers | 6.0.0 |
+| **text** | Text processing utilities | String manipulation and formatting | 6.0.0 |
+| **validation** | Input validation helpers | `validateEmail`, `validateUUID`, `sanitizeInput` | 6.0.0 |
 
 ## 📦 Installation
 
@@ -402,12 +404,14 @@ cd utilities && npm test
 ```
 taleofddh-lib/
 ├── services/
+│   ├── agent/
 │   ├── channel/
 │   ├── crypto/
 │   ├── database/
 │   ├── distribution/
 │   ├── drive/
 │   ├── email/
+│   ├── genai/
 │   ├── gmail/
 │   ├── identity/
 │   ├── message/

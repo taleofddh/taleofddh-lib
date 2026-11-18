@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/email",
-  "version": "5.2.0",
+  "version": "6.0.0",
   "description": "Tale of DDH email service wrappers for AWS Lambda",
   "type": "module",
   "main": "index.js",

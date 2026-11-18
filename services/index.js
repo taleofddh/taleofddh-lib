@@ -1,10 +1,12 @@
 // Aggregate exports for all service packages
+export * as agent from '@taleofddh/agent';
 export * as channel from '@taleofddh/channel';
 export * as crypto from '@taleofddh/crypto';
 export * as database from '@taleofddh/database';
 export * as distribution from '@taleofddh/distribution';
 export * as drive from '@taleofddh/drive';
 export * as email from '@taleofddh/email';
+export * as genai from '@taleofddh/genai';
 export * as gmail from '@taleofddh/gmail';
 export * as identity from '@taleofddh/identity';
 export * as message from '@taleofddh/message';

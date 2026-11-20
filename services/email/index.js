@@ -37,7 +37,7 @@ class EmailService {
 
     async parse(params) {
         try {
-            const email = await simpleParser(data.Body);
+            const email = await simpleParser(params.Body);
             const message = {
                 from: email.from.text,
                 date: JSON.parse(JSON.stringify(email.date)),
@@ -49,11 +49,9 @@ class EmailService {
                 processFlag: true,
                 readFlag: false
             }
-            console.log(message);
             return message;
         } catch (error) {
-            console.error(error.stack);
-            return error;
+            this.handleError(error, 'parse');
         }
     }
 }

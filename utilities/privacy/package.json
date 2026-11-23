@@ -1,0 +1,30 @@
+{
+  "name": "@taleofddh/privacy",
+  "version": "6.1.0",
+  "description": "Privacy scan utilities: mask or reject emails, phone numbers, postcodes, booking references and deny-list names in public text",
+  "type": "module",
+  "main": "index.js",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/taleofddh/taleofddh-lib.git"
+  },
+  "keywords": [
+    "privacy",
+    "pii",
+    "mask",
+    "scan",
+    "lambda",
+    "utilities"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "jest": "^30.3.0"
+  },
+  "engines": {
+    "node": ">=24",
+    "npm": ">=11"
+  }
+}

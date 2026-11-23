@@ -90,8 +90,9 @@ The utilities package provides the following modules:
 | **logger** | Structured logging utilities | Configurable logging with levels | 6.0.0 |
 | **middleware** | Express/Lambda middleware | `corsMiddleware`, `validationMiddleware`, `authMiddleware` | 6.0.0 |
 | **response** | HTTP response helpers | `createResponse`, `createErrorResponse`, CORS headers | 6.0.0 |
-| **text** | Text processing utilities | String manipulation and formatting | 6.0.0 |
-| **validation** | Input validation helpers | `validateEmail`, `validateUUID`, `sanitizeInput` | 6.0.0 |
+| **text** | Text processing utilities | String manipulation and formatting | 6.1.0 |
+| **validation** | Input validation helpers | `validateEmail`, `validateUUID`, `sanitizeInput` | 6.1.0 |
+| **privacy** | Privacy scan for public text | `scanText`, `scanFields`, `privacyErrors`, `parseDenyList` | 6.1.0 |
 
 ## 📦 Installation
 

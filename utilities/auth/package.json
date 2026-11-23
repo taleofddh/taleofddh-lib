@@ -1,6 +1,6 @@
 {
   "name": "@taleofddh/auth",
-  "version": "6.0.1",
+  "version": "6.1.0",
   "description": "Generic permission check for API Gateway Lambda handlers (Cognito groups + role-permissions table)",
   "type": "module",
   "main": "index.js",

@@ -14,6 +14,7 @@ export * as constants from '@taleofddh/constants';
 export * as auth from '@taleofddh/auth';
 export * as text from '@taleofddh/text';
 export * as validation from '@taleofddh/validation';
+export * as privacy from '@taleofddh/privacy';
 
 
 // Export default imports for convenience
